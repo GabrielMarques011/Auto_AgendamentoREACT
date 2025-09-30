@@ -2,7 +2,11 @@ import React from 'react';
 import { UserRound, BookUser } from 'lucide-react';
 
 export default function Screen1({ formData, setFormData, nextStep }) {
-  const handleNext = (e) => {
+
+  const API_URL = import.meta.env.VITE_IXC_API_URL;
+  const API_TOKEN = import.meta.env.VITE_IXC_TOKEN;
+
+  const handleNext = async (e) => {
     e.preventDefault();
 
     if (!formData.clientId.trim() || !formData.contractId.trim()) {
@@ -10,7 +14,79 @@ export default function Screen1({ formData, setFormData, nextStep }) {
       return;
     }
 
-    nextStep();
+    try {
+      // Consulta cliente
+      console.log("🔍 URL:", API_URL);
+      console.log("🔑 TOKEN:", API_TOKEN);
+
+      const clienteRes = await fetch(`/api/cliente`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": API_TOKEN,
+          "ixcsoft": "listar"
+        },
+        body: JSON.stringify({
+          qtype: "id",
+          query: formData.clientId,
+          oper: "=",
+          page: "1",
+          rp: "1"
+        })
+      });
+
+      const clienteData = await clienteRes.json();
+      console.log("Resposta JSON:", clienteData);
+
+      // Consulta contrato
+      const contratoRes = await fetch(`/api/cliente_contrato`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": API_TOKEN,
+          "ixcsoft": "listar"
+        },
+        body: JSON.stringify({
+          qtype: "id",
+          query: formData.contractId,
+          oper: "=",
+          page: "1",
+          rp: "1"
+        })
+      });
+      const contratoData = await contratoRes.json();
+
+        if (!clienteData.registros?.length) {
+          alert("Cliente não encontrado.");
+          return;
+        }
+
+        if (!contratoData.registros?.length) {
+          alert("Contrato não encontrado.");
+          return;
+        }
+
+        const cliente = clienteData.registros[0];
+        const contrato = contratoData.registros[0];
+
+        // Atualiza formData
+        setFormData(prev => ({
+          ...prev,
+          oldAddress: cliente.endereco || '',
+          oldNeighborhood: cliente.bairro || '',
+          oldNumber: cliente.numero || '',
+          oldComplement: cliente.complemento || '',
+          clienteNome: cliente.razao,
+          contratoPlano: contrato.contrato
+        }));
+
+        nextStep();
+        
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao consultar API.");
+      alert(`Erro ao consultar API: ${err.message}`);
+    }
   };
 
   return (

@@ -10,15 +10,17 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); nextStep(); }}>
+        
+        {/* Endereço e Bairro */}
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">Endereço:</label>
             <div className="input-wrapper">
-              <House size={'18px'} className='input-icon' style={{color:'#272727'}} />
+              <House size={'18px'} className='input-icon' style={{ color: '#272727' }} />
               <input
                 type="text"
                 className="form-input"
-                value={formData.oldAddress}
+                value={formData.oldAddress || ''}
                 onChange={(e) => setFormData({ ...formData, oldAddress: e.target.value })}
                 required
               />
@@ -27,11 +29,11 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
           <div className="form-group">
             <label className="form-label">Bairro:</label>
             <div className="input-wrapper">
-              <MapPin size={'18px'} className='input-icon' style={{color:'#272727'}} />
+              <MapPin size={'18px'} className='input-icon' style={{ color: '#272727' }} />
               <input
                 type="text"
                 className="form-input"
-                value={formData.oldNeighborhood}
+                value={formData.oldNeighborhood || ''}
                 onChange={(e) => setFormData({ ...formData, oldNeighborhood: e.target.value })}
                 required
               />
@@ -39,34 +41,36 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
           </div>
         </div>
 
+        {/* Número e Complemento */}
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">Número:</label>
             <div className="input-wrapper">
-              <ArrowUp10 size={'18px'} className='input-icon' style={{color:'#272727'}} />
+              <ArrowUp10 size={'18px'} className='input-icon' style={{ color: '#272727' }} />
               <input
                 type="text"
                 className="form-input"
-                value={formData.oldNumber}
+                value={formData.oldNumber || ''}
                 onChange={(e) => setFormData({ ...formData, oldNumber: e.target.value })}
-              required
-            />
+                required
+              />
             </div>
           </div>
           <div className="form-group">
             <label className="form-label">Complemento:</label>
             <div className="input-wrapper">
-              <MapPinPen size={'18px'} className='input-icon' style={{color:'#272727'}} />
+              <MapPinPen size={'18px'} className='input-icon' style={{ color: '#272727' }} />
               <input
                 type="text"
                 className="form-input"
-                value={formData.oldComplement}
+                value={formData.oldComplement || ''}
                 onChange={(e) => setFormData({ ...formData, oldComplement: e.target.value })}
-            />
-            </div>
+              />
             </div>
           </div>
+        </div>
 
+        {/* Existe Porta? */}
         <div className="form-group">
           <div className="radio-section">
             <div className="radio-question">Existe porta para desativar?</div>
@@ -87,20 +91,21 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
               <div className="form-group">
                 <label className="form-label">Qual Porta?:</label>
                 <div className="input-wrapper">
-                  <EthernetPort size={'18px'} className='input-icon' style={{color:'#272727'}} />
+                  <EthernetPort size={'18px'} className='input-icon' style={{ color: '#272727' }} />
                   <input
                     type="text"
                     className="form-input"
-                    value={formData.portaNumber}
+                    value={formData.portaNumber || ''}
                     onChange={(e) => setFormData({ ...formData, portaNumber: e.target.value })}
-                  required
-                />
-              </div>
+                    required
+                  />
+                </div>
               </div>
             </div>
           )}
         </div>
 
+        {/* Botões */}
         <div className="button-group">
           <button type="button" className="btn btn-secondary" onClick={prevStep}>
             ← Voltar
