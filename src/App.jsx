@@ -18,6 +18,9 @@ function App() {
   const [formData, setFormData] = useState({
     clientId: '',
     contractId: '',
+    nome_cliente: '',
+    telefone: '',
+    cidade: '',
     cep: '',
     isCondominio: false,
     condominio: '',
@@ -37,7 +40,8 @@ function App() {
     valueType: 'renovacao',
     taxValue: '',
     scheduledDate: '',
-    period: 'comercial'
+    period: 'comercial',
+    id_tecnico: '147'
   });
 
   const nextStep = () => setStep((s) => s + 1);
