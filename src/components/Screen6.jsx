@@ -1,4 +1,6 @@
+// src/components/Screen6.jsx
 import React, { useState } from "react";
+import { CheckCircle2, User, MapPin, Calendar, DollarSign, AlertCircle } from "lucide-react";
 
 export default function Screen6({ formData, prevStep }) {
   const [loading, setLoading] = useState(false);
@@ -19,9 +21,7 @@ export default function Screen6({ formData, prevStep }) {
     setLoading(true);
 
     try {
-      // -----------------------
-      // 1) Monta payload de transferência (o que já funciona)
-      // -----------------------
+      // Monta payload de transferência (tolerante a nomes diferentes de chave)
       const transferPayload = {
         clientId: formData.clientId,
         contractId: formData.contractId,
@@ -33,11 +33,10 @@ export default function Screen6({ formData, prevStep }) {
         address: formData.address || "",
         neighborhood: formData.neighborhood || "",
         number: formData.number || "",
-        complement: formData.complement || "",
         oldAddress: formData.oldAddress || "",
         oldNeighborhood: formData.oldNeighborhood || "",
         oldNumber: formData.oldNumber || "",
-        oldComplement: formData.oldComplement || "",
+        oldComplemento: formData.oldComplemento || "",
         hasPorta: formData.hasPorta || false,
         portaNumber: formData.portaNumber || "",
         valueType: formData.valueType || "renovacao",
@@ -45,8 +44,15 @@ export default function Screen6({ formData, prevStep }) {
         scheduledDate: formatScheduledDate(),
         period: formData.period || "",
         nome_cliente: formData.nome_cliente || "",
-        telefone: formData.telefone || "",
-        cidade: formData.city || formData.cidade || ""
+        telefone: formData.telefone_celular || "",
+        // envia cidade preferencialmente como ID (cityId), senão nome
+        cidade: formData.cityId || formData.cidade || formData.city || "",
+        state: formData.state || "",
+        // lat/lng: aceita várias chaves
+        lat: formData.lat ?? formData.latitude ?? "",
+        lng: formData.lng ?? formData.longitude ?? "",
+        city_ibge: formData.city_ibge || "",
+        complemento: formData.complemento || ""
       };
 
       console.log("Enviando /api/transfer payload:", transferPayload);
@@ -60,31 +66,25 @@ export default function Screen6({ formData, prevStep }) {
       const jsonTransfer = await resTransfer.json().catch(() => ({ error: "Resposta inválida do servidor" }));
 
       if (!resTransfer.ok) {
-        // mostra o erro retornado pelo backend
         const errMsg = jsonTransfer.error || JSON.stringify(jsonTransfer);
         throw new Error(`Falha na transferência: ${errMsg}`);
       }
 
       console.log("Transferência criada:", jsonTransfer);
-      // opcional: ids retornados pelo backend (ticket, os, etc)
-      const idsInfo = {
-        ticket: jsonTransfer.id_ticket || jsonTransfer.idTicket || null,
-        os_transfer: jsonTransfer.id_os_transferencia || null,
-        os_desativ: jsonTransfer.id_os_desativacao || null
-      };
 
-      // -----------------------
-      // 2) Atualizar contrato (endpoint separado /api/update_contrato)
-      //    Envia motivo_cancelamento por padrão para evitar erro da IXC
-      // -----------------------
+      // Atualizar contrato separadamente (também envia lat/lng)
       const updatePayload = {
         contractId: formData.contractId,
         address: formData.address || "",
         number: formData.number || "",
         neighborhood: formData.neighborhood || "",
+        complemento: formData.complemento || "",
         cep: formData.cep || "",
-        city: formData.city || formData.cidade || "",
-        // Envie um motivo que faça sentido; se preferir, capture do usuário em UI antes.
+        cidade: formData.cityId || formData.cidade || formData.city || "",
+        state: formData.state || "",
+        lat: formData.lat ?? formData.latitude ?? "",
+        lng: formData.lng ?? formData.longitude ?? "",
+        city_ibge: formData.city_ibge || "",
         motivo_cancelamento: formData.motivo_cancelamento || "Transferência de endereço - atualização via sistema"
       };
 
@@ -96,22 +96,16 @@ export default function Screen6({ formData, prevStep }) {
         body: JSON.stringify(updatePayload)
       });
 
-      // tenta parsear corpo JSON (pode ser string em erro)
       const jsonUpdate = await resUpdate.json().catch(() => ({ error: "Resposta inválida do servidor no update_contrato" }));
 
       if (!resUpdate.ok) {
-        // repassa a mensagem do backend para o usuário — é importante para debug
         const errMsg = jsonUpdate.error || jsonUpdate || JSON.stringify(jsonUpdate);
         throw new Error(`Falha ao atualizar contrato: ${errMsg}`);
       }
 
       console.log("Contrato atualizado:", jsonUpdate);
 
-      // -----------------------
-      // Sucesso final
-      // -----------------------
       alert("Transferência, OS e atualização do contrato concluídos com sucesso!");
-      console.log("Resultado completo:", { transfer: jsonTransfer, update: jsonUpdate, ids: idsInfo });
     } catch (err) {
       console.error("Erro ao finalizar agendamento:", err);
       alert("Erro ao finalizar: " + (err.message || String(err)));
@@ -121,23 +115,204 @@ export default function Screen6({ formData, prevStep }) {
   };
 
   return (
-    <div className="screen active">
-      <div className="form-header">
-        <h2 className="form-title">Revisão do Agendamento</h2>
-        <p className="form-subtitle">Revise os dados antes de finalizar</p>
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Revisão do Agendamento</h2>
+        <p className="text-gray-600">Revise os dados antes de finalizar a transferência</p>
       </div>
 
-      <pre style={{ background: "#f7fafc", padding: 20, borderRadius: 12, textAlign: "left" }}>
-        {JSON.stringify(formData, null, 2)}
-      </pre>
+      <div className="space-y-6">
+        {/* Dados do Cliente */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <User className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Dados do Cliente</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="text-sm font-medium text-gray-500">Nome:</span>
+              <p className="text-gray-800">{formData.nome_cliente || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">ID do Cliente:</span>
+              <p className="text-gray-800">{formData.clientId || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Telefone:</span>
+              <p className="text-gray-800">{formData.telefone_celular || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">ID do Contrato:</span>
+              <p className="text-gray-800">{formData.contractId || "—"}</p>
+            </div>
+          </div>
+        </div>
 
-      <div className="button-group">
-        <button onClick={prevStep} disabled={loading} className="btn btn-secondary">
-          ← Voltar
-        </button>
-        <button onClick={handleFinalize} disabled={loading} className="btn btn-primary">
-          {loading ? "Enviando..." : "Finalizar Agendamento"}
-        </button>
+        {/* Novo Endereço */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Novo Endereço</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="text-sm font-medium text-gray-500">CEP:</span>
+              <p className="text-gray-800">{formData.cep || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Endereço:</span>
+              <p className="text-gray-800">{formData.address || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Número:</span>
+              <p className="text-gray-800">{formData.number || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Bairro:</span>
+              <p className="text-gray-800">{formData.neighborhood || "—"}</p>
+            </div>
+
+            <div>
+              <span className="text-sm font-medium text-gray-500">Latitude:</span>
+              <p className="text-gray-800">{formData.lat || formData.latitude || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Longitude:</span>
+              <p className="text-gray-800">{formData.lng || formData.longitude || "—"}</p>
+            </div>
+
+            {formData.complemento && (
+              <div className="md:col-span-2">
+                <span className="text-sm font-medium text-gray-500">Complemento:</span>
+                <p className="text-gray-800">{formData.complemento}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Endereço Antigo */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="w-5 h-5 text-orange-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Endereço Antigo</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="text-sm font-medium text-gray-500">CEP:</span>
+              <p className="text-gray-800">{formData.oldCep || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Endereço:</span>
+              <p className="text-gray-800">{formData.oldAddress || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Número:</span>
+              <p className="text-gray-800">{formData.oldNumber || "—"}</p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Bairro:</span>
+              <p className="text-gray-800">{formData.oldNeighborhood || "—"}</p>
+            </div>
+            {formData.hasPorta && (
+              <div>
+                <span className="text-sm font-medium text-gray-500">Porta:</span>
+                <p className="text-gray-800">{formData.portaNumber || "—"}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Agendamento */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-5 h-5 text-purple-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Agendamento</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="text-sm font-medium text-gray-500">Data:</span>
+              <p className="text-gray-800">
+                {formData.scheduledDate 
+                  ? new Date(formData.scheduledDate + 'T00:00:00').toLocaleDateString('pt-BR')
+                  : "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-sm font-medium text-gray-500">Período:</span>
+              <p className="text-gray-800">
+                {formData.period 
+                  ? formData.period.charAt(0).toUpperCase() + formData.period.slice(1)
+                  : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Valor */}
+        {formData.valueType && (
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-5 h-5 text-green-600" />
+              <h3 className="text-lg font-semibold text-gray-800">Valor</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span className="text-sm font-medium text-gray-500">Tipo:</span>
+                <p className="text-gray-800">
+                  {formData.valueType === "renovacao" ? "Renovação de Contrato" : "Taxa"}
+                </p>
+              </div>
+              {formData.valueType === "taxa" && formData.taxValue && (
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Valor da Taxa:</span>
+                  <p className="text-gray-800">{formData.taxValue}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Alerta de atenção */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-yellow-800">Atenção</p>
+              <p className="text-sm text-yellow-700 mt-1">
+                Ao finalizar, será criado um ticket, ordens de serviço e o contrato será atualizado. 
+                Certifique-se de que todos os dados estão corretos antes de prosseguir.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Botões */}
+        <div className="flex justify-between pt-4">
+          <button 
+            onClick={prevStep}
+            disabled={loading}
+            className="px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow-md"
+          >
+            ← Voltar
+          </button>
+          <button 
+            onClick={handleFinalize}
+            disabled={loading}
+            className="px-8 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow-md flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Enviando...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                Finalizar Agendamento
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

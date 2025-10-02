@@ -1,10 +1,11 @@
+// src/components/Screen2.jsx
 import React, { useRef, useState, useEffect } from "react";
 import IMask from "imask";
-import { House, MapPin, ArrowUp10, MapPinPen } from "lucide-react";
+import { House, MapPin, ArrowUp10, MapPinned, Search } from "lucide-react";
 
 export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
   const cepRef = useRef();
-  const [outroCondominio, setOutroCondominio] = useState(false);
+  const [loadingCep, setLoadingCep] = useState(false);
 
   useEffect(() => {
     if (cepRef.current) {
@@ -13,102 +14,160 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
   }, []);
 
   const buscarCep = async () => {
-    const cep = formData.cep.replace(/\D/g, "");
+    const cep = (formData.cep || "").replace(/\D/g, "");
     if (cep.length !== 8) {
       alert("Digite um CEP válido.");
       return;
     }
 
+    setLoadingCep(true);
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const res = await fetch(`http://localhost:5000/api/cep/${cep}`);
       const dados = await res.json();
-      if (dados.erro) {
-        alert("CEP não encontrado.");
+
+      console.log("CEP API resposta:", dados);
+
+      if (!res.ok) {
+        const msg = dados.error || "Erro desconhecido ao buscar CEP.";
+        alert(msg);
         return;
       }
 
-      setFormData(prev => ({
-        ...prev,
-        address: dados.logradouro || "",
-        neighborhood: dados.bairro || "",
-        city: dados.localidade || ""
-      }));
+      // Atualiza formData: guarda lat/lng em várias chaves para interoperabilidade
+      const updatedData = {
+        ...formData,
+        cep: dados.cep || formData.cep,
+        address: dados.address || formData.address || "",
+        neighborhood: dados.district || formData.neighborhood || "",
+        cidade: dados.city || dados.cityId || formData.cidade || "",
+        state: dados.state || formData.state || "",
+        city_ibge: dados.city_ibge || formData.city_ibge || "",
+        // lat/lng: definimos tanto lat/lng quanto latitude/longitude para cobrir variações
+        lat: dados.lat || dados.latitude || dados.lat || "",
+        lng: dados.lng || dados.longitude || dados.lng || "",
+        latitude: dados.lat || dados.latitude || dados.lat || "",
+        longitude: dados.lng || dados.longitude || dados.lng || "",
+        cityId: dados.cityId || dados.cityId || null
+      };
+
+      setFormData(updatedData);
     } catch (err) {
       console.error(err);
       alert("Erro ao buscar CEP.");
+    } finally {
+      setLoadingCep(false);
     }
   };
 
   return (
-    <div className="screen active">
-      <h2>Informe o Novo Endereço</h2>
-
-      <div className="form-group">
-        <label>CEP:</label>
-        <div className="input-wrapper">
-          <MapPin size={18} />
-          <input
-            ref={cepRef}
-            type="text"
-            placeholder="00000-000"
-            value={formData.cep || ""}
-            onChange={e => setFormData({ ...formData, cep: e.target.value })}
-          />
-          <button onClick={buscarCep}>Buscar</button>
-        </div>
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Informe o Novo Endereço</h2>
+        <p className="text-gray-600">Preencha os dados do endereço de instalação</p>
       </div>
 
-      <div className="form-group">
-        <label>Endereço:</label>
-        <div className="input-wrapper">
-          <House size={18} />
-          <input
-            type="text"
-            value={formData.address || ""}
-            onChange={e => setFormData({ ...formData, address: e.target.value })}
-          />
+      <div className="space-y-6">
+        {/* CEP */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">CEP</label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                ref={cepRef}
+                type="text"
+                placeholder="00000-000"
+                value={formData.cep || ""}
+                onChange={e => setFormData({ ...formData, cep: e.target.value })}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+              />
+            </div>
+            <button 
+              onClick={buscarCep}
+              disabled={loadingCep}
+              className={`px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 ${loadingCep ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <Search className="w-4 h-4" />
+              {loadingCep ? "Buscando..." : "Buscar"}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="form-group">
-        <label>Bairro:</label>
-        <div className="input-wrapper">
-          <MapPin size={18} />
-          <input
-            type="text"
-            value={formData.neighborhood || ""}
-            onChange={e => setFormData({ ...formData, neighborhood: e.target.value })}
-          />
+        {/* Endereço */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Endereço</label>
+          <div className="relative">
+            <House className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Rua, Avenida, etc."
+              value={formData.address || ""}
+              onChange={e => setFormData({ ...formData, address: e.target.value })}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="form-group">
-        <label>Número:</label>
-        <div className="input-wrapper">
-          <ArrowUp10 size={18} />
-          <input
-            type="text"
-            value={formData.number || ""}
-            onChange={e => setFormData({ ...formData, number: e.target.value })}
-          />
+        {/* Bairro */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Bairro</label>
+          <div className="relative">
+            <MapPinned className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Nome do bairro"
+              value={formData.neighborhood || ""}
+              onChange={e => setFormData({ ...formData, neighborhood: e.target.value })}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="form-group">
-        <label>Complemento:</label>
-        <div className="input-wrapper">
-          <MapPinPen size={18} />
-          <input
-            type="text"
-            value={formData.complement || ""}
-            onChange={e => setFormData({ ...formData, complement: e.target.value })}
-          />
+        {/* Número */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Número</label>
+          <div className="relative">
+            <ArrowUp10 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Número do imóvel"
+              value={formData.number || ""}
+              onChange={e => setFormData({ ...formData, number: e.target.value })}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="button-group">
-        <button onClick={prevStep}>← Voltar</button>
-        <button onClick={nextStep}>Próximo →</button>
+        {/* Complemento */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Complemento</label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Apartamento, bloco, etc. (opcional)"
+              value={formData.complemento || ""}
+              onChange={e => setFormData({ ...formData, complemento: e.target.value })}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+            />
+          </div>
+        </div>
+
+        {/* Botões */}
+        <div className="flex justify-between pt-4">
+          <button 
+            onClick={prevStep}
+            className="px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors shadow-sm hover:shadow-md"
+          >
+            ← Voltar
+          </button>
+          <button 
+            onClick={nextStep}
+            className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+          >
+            Próximo →
+          </button>
+        </div>
       </div>
     </div>
   );
