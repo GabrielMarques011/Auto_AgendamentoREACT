@@ -15,9 +15,11 @@ import { Search, User, Phone, FileText, CreditCard } from 'lucide-react';
 export default function Screen1({ formData, setFormData, nextStep }) {
   const [loading, setLoading] = useState(false);
   const [cpfInput, setCpfInput] = useState('');
+  // agora cada item em contracts terá { id, label, raw }
   const [contracts, setContracts] = useState([]);        // lista de contratos do cliente
   const [clientFound, setClientFound] = useState(false); // true quando clientId foi preenchido
   const [errorMsg, setErrorMsg] = useState(null);
+  const [contractWarning, setContractWarning] = useState(null); // mensagem do aviso sobre status_internet
 
   const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
@@ -28,6 +30,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
     setContracts([]);
     setClientFound(false);
     setErrorMsg(null);
+    setContractWarning(null);
     setFormData(prev => ({
       ...prev,
       clientId: '',
@@ -40,7 +43,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
   const handleBuscarCliente = async () => {
     setErrorMsg(null);
 
-    // aceita que o usuário digite CPF formatado (com pontos/traço) ou apenas dígitos
     const digits = onlyDigits(cpfInput);
     if (!digits || digits.length !== 11) {
       alert('Digite um CPF válido (11 dígitos).');
@@ -49,7 +51,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
 
     setLoading(true);
     try {
-      // envio com qtype cnpj_cpf (backend também tenta variações)
       const payload = {
         qtype: 'cnpj_cpf',
         query: digits,
@@ -67,16 +68,12 @@ export default function Screen1({ formData, setFormData, nextStep }) {
       const data = await resp.json();
 
       if (!resp.ok) {
-        // backend devolve diagnóstico (por ex. { error: "...", ixc_response: {...} })
         const msg = data.error || 'Cliente não encontrado';
         setErrorMsg(typeof data === 'object' ? JSON.stringify(data) : msg);
         throw new Error(msg);
       }
 
-      // registro retornado (objeto com campos do cliente)
       const clienteRegistro = data;
-
-      // preenche formData com o id (diferentes APIs usam 'id' ou 'ID')
       const foundId = clienteRegistro.id || clienteRegistro.ID || clienteRegistro.id_cliente || '';
 
       setFormData(prev => ({
@@ -87,14 +84,13 @@ export default function Screen1({ formData, setFormData, nextStep }) {
       }));
 
       setClientFound(true);
-      // busca contratos vinculados
       await buscarContratos(foundId);
     } catch (err) {
       console.error('Erro buscar cliente:', err);
       if (!errorMsg) setErrorMsg(err.message || String(err));
       setClientFound(false);
       setContracts([]);
-      // não explodir UI com alerta repetido (já logamos)
+      setContractWarning(null);
     } finally {
       setLoading(false);
     }
@@ -102,6 +98,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
 
   const buscarContratos = async (clientId) => {
     setErrorMsg(null);
+    setContractWarning(null);
     if (!clientId) return;
     setLoading(true);
     try {
@@ -128,16 +125,21 @@ export default function Screen1({ formData, setFormData, nextStep }) {
 
       // backend devolve objeto com "registros": [...]
       const registros = data.registros || [];
+
+      // Normaliza mantendo o registro cru para checar status_internet
       const normalized = registros.map(r => ({
         id: r.id || r.ID || r.id_contrato || r.numero || '',
-        label: r.contrato || r.contrato_descricao || (r.contrato ? String(r.contrato) : (`Contrato ${r.id || ''}`))
+        label: r.contrato || r.contrato_descricao || (r.contrato ? String(r.contrato) : (`Contrato ${r.id || ''}`)),
+        raw: r
       }));
 
       setContracts(normalized);
 
-      // se só houver 1 contrato já seleciona automaticamente
+      // se só houver 1 contrato já seleciona automaticamente e verifica status_internet
       if (normalized.length === 1) {
-        setFormData(prev => ({ ...prev, contractId: normalized[0].id }));
+        const single = normalized[0];
+        setFormData(prev => ({ ...prev, contractId: single.id }));
+        checkContractInternetStatus(single.raw); // verifica e mostra aviso se necessário
       } else {
         // limpar contractId caso o cliente tenha sido trocado
         setFormData(prev => ({ ...prev, contractId: '' }));
@@ -146,14 +148,56 @@ export default function Screen1({ formData, setFormData, nextStep }) {
       console.error('Erro buscar contratos:', err);
       if (!errorMsg) setErrorMsg(err.message || String(err));
       setContracts([]);
+      setContractWarning(null);
     } finally {
       setLoading(false);
     }
   };
 
+  // função utilitária que verifica o campo status_internet e seta o aviso se necessário
+  const checkContractInternetStatus = (rawRecord) => {
+    if (!rawRecord) {
+      setContractWarning(null);
+      return;
+    }
+
+    // tenta várias chaves possíveis que o IXC pode retornar
+    const statusRaw = (rawRecord.status_internet || rawRecord.statusInternet || rawRecord.status_internet_contrato || rawRecord.status_internet_contrato || rawRecord.status || rawRecord.st || "").toString().trim().toUpperCase();
+
+    const statusMap = {
+      CM: 'Bloqueio Manual',
+      CA: 'Bloqueio Automático',
+      FA: 'Financeiro em Atraso',
+      AA: 'Aguardando Assinatura',
+      A: 'Ativo'
+    };
+
+    if (!statusRaw) {
+      setContractWarning(null);
+      return;
+    }
+
+    if (statusRaw === 'A') {
+      setContractWarning(null); // tudo ok
+      return;
+    }
+
+    // monta mensagem amigável
+    const human = statusMap[statusRaw] || statusRaw;
+    setContractWarning(`Atenção: esse contrato tem status de internet "${human}" (${statusRaw}).`);
+  };
+
   const handleContractSelect = (e) => {
     const val = e.target.value;
     setFormData(prev => ({ ...prev, contractId: val }));
+
+    // procura o objeto completo na lista
+    const found = contracts.find(c => String(c.id) === String(val));
+    if (found) {
+      checkContractInternetStatus(found.raw);
+    } else {
+      setContractWarning(null);
+    }
   };
 
   const handleNext = () => {
@@ -165,6 +209,14 @@ export default function Screen1({ formData, setFormData, nextStep }) {
       alert('Escolha o contrato do cliente antes de prosseguir.');
       return;
     }
+
+    // opcional: impedir avanço se houver bloqueio de internet
+    // se preferir apenas avisar, comente as linhas abaixo
+    /* const hasWarning = !!contractWarning;
+    if (hasWarning) {
+      if (!window.confirm(`${contractWarning}\n\nDeseja continuar mesmo assim?`)) return;
+    } */
+
     nextStep();
   };
 
@@ -226,21 +278,30 @@ export default function Screen1({ formData, setFormData, nextStep }) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Contrato do Cliente</label>
 
           {contracts.length > 0 ? (
-            <div className="relative">
-              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
-              <select 
-                value={formData.contractId || ''} 
-                onChange={handleContractSelect}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all appearance-none"
-              >
-                <option value="">-- Selecione o contrato --</option>
-                {contracts.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.label} ({c.id})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <>
+              <div className="relative">
+                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                <select 
+                  value={formData.contractId || ''} 
+                  onChange={handleContractSelect}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all appearance-none"
+                >
+                  <option value="">-- Selecione o contrato --</option>
+                  {contracts.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.label} ({c.id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Banner de aviso sobre status_internet */}
+              {contractWarning && (
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
+                  <strong>Atenção:</strong> <span className="ml-1">{contractWarning}</span>
+                </div>
+              )}
+            </>
           ) : (
             <div>
               <div className="relative">
@@ -269,7 +330,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
               type="text"
               value={formData.nome_cliente || ''}
               onChange={e => setFormData({ ...formData, nome_cliente: e.target.value })}
-              /* readOnly */
               placeholder="Nome será preenchido automaticamente"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700"
             />
@@ -284,7 +344,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
               type="text"
               value={formData.telefone_celular || ''}
               onChange={e => setFormData({ ...formData, telefone_celular: e.target.value })}
-              /* readOnly */
               placeholder="Telefones serão preenchidos automaticamente"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white"
             />

@@ -1,9 +1,12 @@
-import React, { useRef, useEffect } from "react";
+// src/components/Screen3.jsx
+import React, { useRef, useEffect, useState } from "react";
 import IMask from "imask";
 import { House, MapPin, ArrowUp10, MapPinned, EthernetPort, Search } from "lucide-react";
 
 export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
   const oldCepRef = useRef();
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
     if (oldCepRef.current) {
@@ -11,14 +14,98 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
     }
   }, []);
 
+  // função utilitária para limpar dígitos
+  const cleanDigits = (s) => (String(s || "").replace(/\D/g, "") || "");
+
+  // formata para XXXXX-XXX quando possível
+  const formatCepPretty = (raw) => {
+    try {
+      const digits = cleanDigits(raw);
+      if (digits.length === 8) return `${digits.slice(0,5)}-${digits.slice(5)}`;
+      return raw || "";
+    } catch (e) {
+      return raw || "";
+    }
+  };
+
+  // Busca contrato por ID e preenche os campos "antigos" caso estejam vazios
+  useEffect(() => {
+    const contractId = formData.contractId || formData.id_contrato || formData.contract || "";
+    if (!contractId) return;
+
+    const fetchOldAddressFromContract = async () => {
+      setLoading(true);
+      setFetchError(null);
+      try {
+        const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+        const payload = {
+          qtype: "id",
+          query: String(contractId),
+          oper: "=",
+          page: "1",
+          rp: "1"
+        };
+
+        const res = await fetch(`${API_BASE}/api/cliente_contrato`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          console.warn("Erro ao obter contrato:", data);
+          setFetchError(data.error || "Erro ao buscar contrato");
+          setLoading(false);
+          return;
+        }
+
+        // data pode ser a resposta inteira do IXC ou já uma estrutura custom
+        const registro = (data.registros && data.registros[0]) ? data.registros[0] : (data.registro || data);
+
+        if (!registro) {
+          setFetchError("Registro de contrato não encontrado na resposta.");
+          setLoading(false);
+          return;
+        }
+
+        // Mapeia possíveis chaves que o IXC usa
+        const contratoEndereco = registro.endereco || registro.address || registro.logradouro || "";
+        const contratoNumero = registro.numero || registro.number || registro.nro || "";
+        const contratoBairro = registro.bairro || registro.neighborhood || "";
+        const contratoCep = registro.cep || registro.CEP || registro.Cep || "";
+        const contratoCidade = registro.cidade || registro.city || registro.id_cidade || "";
+
+        // Atualiza apenas campos vazios (não sobrescreve entrada manual do usuário)
+        setFormData(prev => ({
+          ...prev,
+          oldAddress: prev.oldAddress && prev.oldAddress.trim() ? prev.oldAddress : (contratoEndereco || prev.oldAddress || ""),
+          oldNumber: prev.oldNumber && prev.oldNumber.toString().trim() ? prev.oldNumber : (contratoNumero || prev.oldNumber || ""),
+          oldNeighborhood: prev.oldNeighborhood && prev.oldNeighborhood.trim() ? prev.oldNeighborhood : (contratoBairro || prev.oldNeighborhood || ""),
+          oldCep: prev.oldCep && prev.oldCep.toString().trim() ? prev.oldCep : (formatCepPretty(contratoCep) || prev.oldCep || ""),
+          oldCity: prev.oldCity && prev.oldCity.toString().trim() ? prev.oldCity : (contratoCidade || prev.oldCity || "")
+        }));
+
+      } catch (err) {
+        console.error("Erro fetch contrato:", err);
+        setFetchError(String(err) || "Erro desconhecido");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOldAddressFromContract();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.contractId]);
+
+  // Busca CEP antigo via API externa (quando usuário clicar Buscar)
   const buscarCepAntigo = async () => {
-    const cep = (formData.oldCep || "").replace(/\D/g, "");
+    const cep = cleanDigits(formData.oldCep || "");
     if (cep.length !== 8) {
       alert("Digite um CEP válido.");
       return;
     }
     try {
-      /* const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`); */
       const res = await fetch(`https://cep.awesomeapi.com.br/json/${cep}`);
       const dados = await res.json();
       if (dados.erro) {
@@ -27,9 +114,9 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
       }
       setFormData(prev => ({
         ...prev,
-        oldAddress: dados.address	 || "",
-        oldNeighborhood: dados.district	 || "",
-        oldCity: dados.city || ""
+        oldAddress: dados.address || prev.oldAddress || "",
+        oldNeighborhood: dados.district || prev.oldNeighborhood || "",
+        oldCity: dados.city || prev.oldCity || ""
       }));
     } catch (err) {
       console.error(err);
@@ -45,6 +132,15 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
       </div>
 
       <div className="space-y-6">
+        {loading && (
+          <div className="p-3 bg-blue-50 border border-blue-100 rounded text-blue-700">Carregando dados do contrato...</div>
+        )}
+        {fetchError && (
+          <div className="p-3 bg-red-50 border border-red-100 rounded text-red-700">
+            Erro ao preencher endereço antigo: {fetchError}
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">CEP Antigo</label>
           <div className="flex gap-2">
