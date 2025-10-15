@@ -26,10 +26,12 @@ export default function Screen6({ formData, prevStep }) {
         clientId: formData.clientId,
         contractId: formData.contractId,
         cep: formData.cep,
-        isCondominio: formData.isCondominio || false,
-        condominio: formData.condominio || formData.outroCondominio || "",
-        apartment: formData.apartment || "",
-        block: formData.block || "",
+        // condominio fields (envia tanto id_condominio quanto condominio para garantir compatibilidade)
+        id_condominio: formData.condominio || formData.condominioId || formData.id_condominio || "",
+        condominio: formData.condominioName || formData.condominio || "",
+        bloco: formData.bloco || "",
+        apartamento: formData.apartment || formData.apartamento || "",
+        // endereço
         address: formData.address || "",
         neighborhood: formData.neighborhood || "",
         number: formData.number || "",
@@ -72,22 +74,6 @@ export default function Screen6({ formData, prevStep }) {
 
       console.log("Transferência criada:", jsonTransfer);
 
-      // Atualizar contrato separadamente (também envia lat/lng)
-      /* const updatePayload = {
-        contractId: formData.contractId,
-        address: formData.address || "",
-        number: formData.number || "",
-        neighborhood: formData.neighborhood || "",
-        complemento: formData.complemento || "",
-        cep: formData.cep || "",
-        cidade: formData.cityId || formData.cidade || formData.city || "",
-        state: formData.state || "",
-        lat: formData.lat ?? formData.latitude ?? "",
-        lng: formData.lng ?? formData.longitude ?? "",
-        city_ibge: formData.city_ibge || "",
-        motivo_cancelamento: formData.motivo_cancelamento || "Transferência de endereço - atualização via sistema"
-      }; */
-
       // normaliza cep
       const cepSanitized = (formData.cep || "").replace(/\D/g, "");
       const validCep = cepSanitized && cepSanitized.length === 8 && !/^0+$/.test(cepSanitized);
@@ -112,14 +98,18 @@ export default function Screen6({ formData, prevStep }) {
         latitude: formData.lat ?? formData.latitude ?? "",
         longitude: formData.lng ?? formData.longitude ?? "",
         city_ibge: formData.city_ibge || "",
-        motivo_cancelamento: " " // forçar espaco
+        motivo_cancelamento: " ", // forçar espaco
+        // condominio fields (tanto id quanto nome e bloco/apartamento)
+        id_condominio: formData.condominio || formData.condominioId || formData.id_condominio || "",
+        condominio: formData.condominioName || formData.condominio || "",
+        bloco: formData.bloco || "",
+        apartamento: formData.apartment || formData.apartamento || ""
       };
 
       // só injetar cep se for válido (evita enviar CEP inválido)
       if (validCep) {
         updatePayload.cep = cepSanitized;
       }
-
 
       console.log("Enviando /api/update_contrato payload:", updatePayload);
 
@@ -217,6 +207,24 @@ export default function Screen6({ formData, prevStep }) {
               <div className="md:col-span-2">
                 <span className="text-sm font-medium text-gray-500">Complemento:</span>
                 <p className="text-gray-800">{formData.complemento}</p>
+              </div>
+            )}
+
+            {/* Exibe dados de condomínio se aplicável */}
+            {formData.isCondominio && (
+              <div className="md:col-span-2 bg-gray-50 p-3 rounded border border-gray-100">
+                <span className="text-sm font-medium text-gray-500">Condomínio:</span>
+                <p className="text-gray-800">{formData.condominioName || formData.condominio || "—"}</p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Bloco:</span>
+                    <p className="text-gray-800">{formData.bloco || "—"}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Apartamento:</span>
+                    <p className="text-gray-800">{formData.apartment || formData.apartamento || "—"}</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -6,12 +6,42 @@ import { House, MapPin, ArrowUp10, MapPinned, Search } from "lucide-react";
 export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
   const cepRef = useRef();
   const [loadingCep, setLoadingCep] = useState(false);
+  const [condominios, setCondominios] = useState([]);
+  const [loadingCondominios, setLoadingCondominios] = useState(false);
 
   useEffect(() => {
     if (cepRef.current) {
       IMask(cepRef.current, { mask: "00000-000" });
     }
   }, []);
+
+  // Busca condomínios quando o componente monta (não bloqueante)
+  useEffect(() => {
+    // opcional: apenas carregar quando isCondominio for true
+    if (formData.isCondominio) {
+      fetchCondominios();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.isCondominio]);
+
+  const fetchCondominios = async () => {
+    setLoadingCondominios(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/condominios");
+      if (!res.ok) {
+        console.warn("Falha ao buscar condominios", res.status);
+        setCondominios([]);
+        return;
+      }
+      const json = await res.json();
+      setCondominios(json.registros || []);
+    } catch (err) {
+      console.error("Erro ao buscar condominios:", err);
+      setCondominios([]);
+    } finally {
+      setLoadingCondominios(false);
+    }
+  };
 
   const buscarCep = async () => {
     const cep = (formData.cep || "").replace(/\D/g, "");
@@ -33,7 +63,6 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
         return;
       }
 
-      // dentro de buscarCep(), substitua updatedData existente por:
       const normalizedCep = (dados.cep || "").replace(/\D/g, "");
 
       const updatedData = {
@@ -51,7 +80,6 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
         longitude: dados.lng || dados.longitude || "",
         cityId: dados.cityId || null
       };
-
 
       setFormData(updatedData);
     } catch (err) {
@@ -155,6 +183,90 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
             />
           </div>
         </div>
+
+        {/* É Condomínio? checkbox */}
+        <div className="flex items-center gap-3">
+          <input
+            id="isCondominio"
+            type="checkbox"
+            checked={!!formData.isCondominio}
+            onChange={e => {
+              const checked = e.target.checked;
+              setFormData({
+                ...formData,
+                isCondominio: checked,
+                // se desmarcar, limpa campos relacionados para evitar enviar dados antigos
+                ...(checked ? {} : { condominio: "", condominioName: "", bloco: "", apartment: "" })
+              });
+              // se marcar, busca condomínios
+              if (checked) fetchCondominios();
+            }}
+            className="w-4 h-4"
+          />
+          <label htmlFor="isCondominio" className="text-sm text-gray-700">É Condomínio?</label>
+        </div>
+
+        {/* Campos condicionais para Condomínio */}
+        {formData.isCondominio && (
+          <div className="space-y-4 bg-gray-50 p-4 rounded-md border border-gray-100">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Condomínio</label>
+              <div className="flex gap-2">
+                <select
+                  value={formData.condominio || ""}
+                  onChange={e => {
+                    const selectedId = e.target.value;
+                    const selected = condominios.find(c => String(c.id) === String(selectedId));
+                    setFormData({
+                      ...formData,
+                      condominio: selectedId,
+                      condominioName: selected ? selected.condominio : ""
+                    });
+                  }}
+                  className="flex-1 py-2 px-3 border border-gray-300 rounded-lg bg-white"
+                  disabled={loadingCondominios}
+                >
+                  <option value="">— Selecionar condomínio —</option>
+                  {condominios.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.condominio} {c.bairro ? `— ${c.bairro}` : ""}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={fetchCondominios}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg"
+                >
+                  {loadingCondominios ? "..." : "Atualizar"}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bloco</label>
+                <input
+                  type="text"
+                  placeholder="Bloco"
+                  value={formData.bloco || ""}
+                  onChange={e => setFormData({ ...formData, bloco: e.target.value })}
+                  className="w-full py-2 px-3 border border-gray-300 rounded-lg bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Apartamento</label>
+                <input
+                  type="text"
+                  placeholder="Apartamento"
+                  value={formData.apartment || formData.apartamento || ""}
+                  onChange={e => setFormData({ ...formData, apartment: e.target.value, apartamento: e.target.value })}
+                  className="w-full py-2 px-3 border border-gray-300 rounded-lg bg-white"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Botões */}
         <div className="flex justify-between pt-4">
