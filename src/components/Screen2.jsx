@@ -15,9 +15,8 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
     }
   }, []);
 
-  // Busca condomínios quando o componente monta (não bloqueante)
+  // Busca condomínios quando isCondominio é marcado
   useEffect(() => {
-    // opcional: apenas carregar quando isCondominio for true
     if (formData.isCondominio) {
       fetchCondominios();
     }
@@ -42,6 +41,8 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
       setLoadingCondominios(false);
     }
   };
+
+  const cleanDigits = (s) => (String(s || "").replace(/\D/g, "") || "");
 
   const buscarCep = async () => {
     const cep = (formData.cep || "").replace(/\D/g, "");
@@ -195,10 +196,8 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
               setFormData({
                 ...formData,
                 isCondominio: checked,
-                // se desmarcar, limpa campos relacionados para evitar enviar dados antigos
                 ...(checked ? {} : { condominio: "", condominioName: "", bloco: "", apartment: "" })
               });
-              // se marcar, busca condomínios
               if (checked) fetchCondominios();
             }}
             className="w-4 h-4"
@@ -217,11 +216,26 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
                   onChange={e => {
                     const selectedId = e.target.value;
                     const selected = condominios.find(c => String(c.id) === String(selectedId));
-                    setFormData({
-                      ...formData,
-                      condominio: selectedId,
-                      condominioName: selected ? selected.condominio : ""
-                    });
+                    if (selected) {
+                      // auto-preenche campos do endereço a partir do condomínio selecionado
+                      const normalizedCep = cleanDigits(selected.cep);
+                      setFormData({
+                        ...formData,
+                        condominio: selectedId,
+                        condominioName: selected.condominio || "",
+                        address: selected.endereco || formData.address || "",
+                        number: selected.numero || formData.number || "",
+                        neighborhood: (selected.bairro || "").trim() || formData.neighborhood || "",
+                        cep: normalizedCep || formData.cep || "",
+                        cityId: selected.id_cidade ? String(selected.id_cidade) : formData.cityId || "",
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        condominio: "",
+                        condominioName: ""
+                      });
+                    }
                   }}
                   className="flex-1 py-2 px-3 border border-gray-300 rounded-lg bg-white"
                   disabled={loadingCondominios}
