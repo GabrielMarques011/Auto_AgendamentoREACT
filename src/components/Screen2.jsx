@@ -33,22 +33,25 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
         return;
       }
 
-      // Atualiza formData: guarda lat/lng em várias chaves para interoperabilidade
+      // dentro de buscarCep(), substitua updatedData existente por:
+      const normalizedCep = (dados.cep || "").replace(/\D/g, "");
+
       const updatedData = {
         ...formData,
-        cep: dados.cep || formData.cep,
+        cep: normalizedCep || formData.cep,
         address: dados.address || formData.address || "",
         neighborhood: dados.district || formData.neighborhood || "",
         cidade: dados.city || dados.cityId || formData.cidade || "",
         state: dados.state || formData.state || "",
         city_ibge: dados.city_ibge || formData.city_ibge || "",
         // lat/lng: definimos tanto lat/lng quanto latitude/longitude para cobrir variações
-        lat: dados.lat || dados.latitude || dados.lat || "",
-        lng: dados.lng || dados.longitude || dados.lng || "",
-        latitude: dados.lat || dados.latitude || dados.lat || "",
-        longitude: dados.lng || dados.longitude || dados.lng || "",
-        cityId: dados.cityId || dados.cityId || null
+        lat: dados.lat || dados.latitude || "",
+        lng: dados.lng || dados.longitude || "",
+        latitude: dados.lat || dados.latitude || "",
+        longitude: dados.lng || dados.longitude || "",
+        cityId: dados.cityId || null
       };
+
 
       setFormData(updatedData);
     } catch (err) {

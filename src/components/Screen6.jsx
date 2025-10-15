@@ -73,7 +73,7 @@ export default function Screen6({ formData, prevStep }) {
       console.log("Transferência criada:", jsonTransfer);
 
       // Atualizar contrato separadamente (também envia lat/lng)
-      const updatePayload = {
+      /* const updatePayload = {
         contractId: formData.contractId,
         address: formData.address || "",
         number: formData.number || "",
@@ -86,7 +86,40 @@ export default function Screen6({ formData, prevStep }) {
         lng: formData.lng ?? formData.longitude ?? "",
         city_ibge: formData.city_ibge || "",
         motivo_cancelamento: formData.motivo_cancelamento || "Transferência de endereço - atualização via sistema"
+      }; */
+
+      // normaliza cep
+      const cepSanitized = (formData.cep || "").replace(/\D/g, "");
+      const validCep = cepSanitized && cepSanitized.length === 8 && !/^0+$/.test(cepSanitized);
+
+      const updatePayload = {
+        contractId: formData.contractId,
+        id_contrato: formData.contractId,
+        endereco: formData.address || "",
+        address: formData.address || "",
+        numero: formData.number || "",
+        number: formData.number || "",
+        bairro: formData.neighborhood || "",
+        neighborhood: formData.neighborhood || "",
+        complemento: formData.complemento || "",
+        // cidade como id ou nome (enviar ambas chaves possíveis)
+        cidade: formData.cityId || formData.cidade || formData.city || "",
+        city: formData.cityId || formData.city || formData.cidade || "",
+        estado: formData.state || formData.estado || "SP",
+        state: formData.state || "",
+        lat: formData.lat ?? formData.latitude ?? "",
+        lng: formData.lng ?? formData.longitude ?? "",
+        latitude: formData.lat ?? formData.latitude ?? "",
+        longitude: formData.lng ?? formData.longitude ?? "",
+        city_ibge: formData.city_ibge || "",
+        motivo_cancelamento: " " // forçar espaco
       };
+
+      // só injetar cep se for válido (evita enviar CEP inválido)
+      if (validCep) {
+        updatePayload.cep = cepSanitized;
+      }
+
 
       console.log("Enviando /api/update_contrato payload:", updatePayload);
 
@@ -99,8 +132,7 @@ export default function Screen6({ formData, prevStep }) {
       const jsonUpdate = await resUpdate.json().catch(() => ({ error: "Resposta inválida do servidor no update_contrato" }));
 
       if (!resUpdate.ok) {
-        const errMsg = jsonUpdate.error || jsonUpdate || JSON.stringify(jsonUpdate);
-        throw new Error(`Falha ao atualizar contrato: ${errMsg}`);
+        throw new Error(jsonUpdate.error || JSON.stringify(jsonUpdate));
       }
 
       console.log("Contrato atualizado:", jsonUpdate);
