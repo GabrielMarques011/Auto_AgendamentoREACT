@@ -2,6 +2,33 @@ import React from "react";
 import { CalendarDays } from "lucide-react";
 
 export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
+  const today = new Date().toISOString().split("T")[0];
+
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    if (selectedDate < today) {
+      alert("Não é possível agendar uma data anterior a hoje.");
+      setFormData({ ...formData, scheduledDate: "" });
+    } else {
+      setFormData({ ...formData, scheduledDate: selectedDate });
+    }
+  };
+
+  const handleNext = () => {
+    if (!formData.scheduledDate || !formData.period) {
+      alert("Selecione uma data válida e o período antes de prosseguir.");
+      return;
+    }
+
+    // Valida novamente para evitar burlar com digitação
+    if (formData.scheduledDate < today) {
+      alert("A data selecionada é anterior a hoje. Escolha uma data válida.");
+      return;
+    }
+
+    nextStep();
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="mb-8">
@@ -16,12 +43,15 @@ export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
             <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
             <input
               type="date"
+              min={today}
               value={formData.scheduledDate || ""}
-              onChange={e => setFormData({ ...formData, scheduledDate: e.target.value })}
+              onChange={handleDateChange}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-700 bg-white"
             />
           </div>
-          <small className="block mt-1.5 text-sm text-gray-500">Escolha a data desejada para a visita técnica</small>
+          <small className="block mt-1.5 text-sm text-gray-500">
+            Escolha a data desejada para a visita técnica
+          </small>
         </div>
 
         <div>
@@ -72,7 +102,7 @@ export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
             ← Voltar
           </button>
           <button 
-            onClick={nextStep}
+            onClick={handleNext}
             className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
           >
             Próximo →

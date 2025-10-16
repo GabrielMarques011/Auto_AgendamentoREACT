@@ -13,9 +13,11 @@
   "dependencies": {
     "bootstrap-icons": "^1.13.1",
     "boxicons": "^2.1.4",
+    "date-fns": "^4.1.0",
     "imask": "^7.6.1",
     "lucide-react": "^0.539.0",
     "react": "^19.1.1",
+    "react-datepicker": "^8.8.0",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {

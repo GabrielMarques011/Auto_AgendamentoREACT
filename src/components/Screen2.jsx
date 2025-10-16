@@ -210,53 +210,74 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
 
   // Atualizado: quando desmarca isCondominio, definimos explicitamente " " nos campos que o backend espera.
   const handleNext = async () => {
-    if (!validateAllRequired()) {
-      if (errors.address) {
-        alert(errors.address || "Por favor preencha os campos obrigatórios.");
-      } else if (errors.cep) {
-        alert(errors.cep || "Por favor preencha os campos obrigatórios.");
-      } else if (errors.neighborhood) {
-        alert(
-          errors.neighborhood || "Por favor preencha os campos obrigatórios."
-        );
-      } else if (errors.number) {
-        alert(errors.number || "Por favor preencha os campos obrigatórios.");
-      } else {
-        alert("Por favor preencha os campos obrigatórios.");
+  // ✅ Validação adicional para bloco e apartamento se for condomínio
+  if (formData.isCondominio) {
+    const blocoVazio = !formData.bloco || formData.bloco.trim() === "";
+    const apartamentoVazio =
+      !(formData.apartment || formData.apartamento) ||
+      (formData.apartment || formData.apartamento).trim() === "";
+
+    if (blocoVazio || apartamentoVazio) {
+      if (blocoVazio) {
+        setErrors((prev) => ({ ...prev, bloco: "Bloco é obrigatório." }));
       }
+      if (apartamentoVazio) {
+        setErrors((prev) => ({
+          ...prev,
+          apartment: "Apartamento é obrigatório.",
+        }));
+      }
+      alert("Preencha os campos de Bloco e Apartamento.");
       return;
     }
+  }
 
-    // Criamos uma cópia atualizada que já contém as chaves de limpeza quando isCondominio = false
-    const updated = {
-      ...formData,
-      ...(formData.isCondominio ? {} : {
-        // definimos " " (string com espaço) conforme você pediu
-        id_condominio: " ",
-        condominio: "",
-        condominioName: "",
-        bloco: " ",
-        apartment: " ",
-        apartamento: " "
-      })
-    };
+  // ✅ Validação dos campos obrigatórios (já existente)
+  if (!validateAllRequired()) {
+    if (errors.address) {
+      alert(errors.address || "Por favor preencha os campos obrigatórios.");
+    } else if (errors.cep) {
+      alert(errors.cep || "Por favor preencha os campos obrigatórios.");
+    } else if (errors.neighborhood) {
+      alert(
+        errors.neighborhood || "Por favor preencha os campos obrigatórios."
+      );
+    } else if (errors.number) {
+      alert(errors.number || "Por favor preencha os campos obrigatórios.");
+    } else {
+      alert("Por favor preencha os campos obrigatórios.");
+    }
+    return;
+  }
 
-    // atualiza o estado local
-    setFormData(updated);
-
-    // monta payload que será enviado ao backend (quando você for enviar)
-    const payload = buildUpdatePayload(updated);
-
-    // --- Se quiser persistir já nessa etapa, descomente abaixo:
-    // const result = await saveContrato(payload);
-    // if (!result.ok) {
-    //   alert("Erro ao salvar no servidor. Veja console.");
-    //   return;
-    // }
-
-    // avança
-    nextStep();
+  // ✅ Atualiza os campos caso isCondominio seja desmarcado
+  const updated = {
+    ...formData,
+    ...(formData.isCondominio
+      ? {}
+      : {
+          id_condominio: " ",
+          condominio: "",
+          condominioName: "",
+          bloco: " ",
+          apartment: " ",
+          apartamento: " ",
+        }),
   };
+
+  setFormData(updated);
+
+  const payload = buildUpdatePayload(updated);
+
+  // Se quiser salvar no backend, descomente abaixo:
+  // const result = await saveContrato(payload);
+  // if (!result.ok) {
+  //   alert("Erro ao salvar no servidor. Veja console.");
+  //   return;
+  // }
+
+  nextStep();
+};
 
   return (
     <div className="w-full max-w-3xl mx-auto">
