@@ -37,7 +37,7 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
       setLoading(true);
       setFetchError(null);
       try {
-        const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+        //const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
         const payload = {
           qtype: "id",
           query: String(contractId),
@@ -46,7 +46,7 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
           rp: "1"
         };
 
-        const res = await fetch(`${API_BASE}/api/cliente_contrato`, {
+        const res = await fetch(`http://10.0.30.251:5000/api/cliente_contrato`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -252,20 +252,36 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
         </div>
 
         {formData.hasPorta && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Qual Porta?</label>
-            <div className="relative">
-              <EthernetPort className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Número da porta"
-                value={formData.portaNumber || ""}
-                onChange={e => setFormData({ ...formData, portaNumber: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
-              />
-            </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Qual Porta?</label>
+          <div className="relative">
+            <EthernetPort className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Número da porta de 1 a 24"
+              value={formData.portaNumber || ""}
+              onChange={e => {
+                const value = e.target.value;
+
+                // 1️⃣ Regex: só aceita números (sem espaços, letras ou símbolos)
+                const isValidFormat = /^[0-9]*$/.test(value);
+
+                // 2️⃣ Verifica se está vazio ou entre 1 e 24
+                const numericValue = Number(value);
+
+                if (
+                  (value === "" || isValidFormat) &&
+                  (value === "" || (numericValue >= 1 && numericValue <= 24))
+                ) {
+                  setFormData({ ...formData, portaNumber: value });
+                }
+              }}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+            />
           </div>
-        )}
+        </div>
+      )}
 
         <div className="flex justify-between pt-4">
           <button 
@@ -274,8 +290,22 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
           >
             ← Voltar
           </button>
-          <button 
-            onClick={nextStep}
+          <button
+            onClick={() => {
+              // Verifica se é necessário informar a porta
+              if (formData.hasPorta) {
+                const porta = Number(formData.portaNumber);
+
+                // Validação: se vazio, não numérico ou fora de 1–24
+                if (!porta || isNaN(porta) || porta < 1 || porta > 24) {
+                  alert("Informe um número de porta válido (entre 1 e 24) antes de continuar.");
+                  return; // impede o avanço
+                }
+              }
+
+              // Se passou na validação, pode seguir
+              nextStep();
+            }}
             className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
           >
             Próximo →

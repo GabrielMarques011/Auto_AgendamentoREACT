@@ -41,19 +41,31 @@ export default function Screen4({ formData, setFormData, nextStep, prevStep }) {
         </div>
 
         {formData.valueType === "taxa" && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 animate-fadeIn">
-            <label className="block text-sm font-medium text-gray-700 mb-3">Valor da Taxa</label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="R$ 0,00"
-                value={formData.taxValue || ""}
-                onChange={e => setFormData({ ...formData, taxValue: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white text-lg"
-              />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 animate-fadeIn">
+            <label className="block text-sm font-medium text-gray-700 mb-4">Valor da Taxa</label>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {["R$150,00", "R$100,00", "R$75,00", "R$50,00"].map((valor) => (
+                <button
+                  key={valor}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, taxValue: valor })}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-lg transition-all border
+                    ${
+                      formData.taxValue === valor
+                        ? "bg-blue-600 text-white border-blue-700 shadow-md ring-2 ring-blue-600 ring-offset-2"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-100"
+                    }`}
+                >
+                  <DollarSign className="w-5 h-5" />
+                  {valor}
+                </button>
+              ))}
             </div>
-            <small className="block mt-2 text-sm text-gray-600">Digite o valor da taxa a ser cobrada</small>
+
+            <small className="block mt-3 text-sm text-gray-600 text-center">
+              Selecione o valor da taxa a ser cobrada
+            </small>
           </div>
         )}
 

@@ -4,7 +4,7 @@ import { LogIn, User, Lock, AlertCircle, Layers } from "lucide-react";
 
 // Mapeamento de usuários para ID do técnico
 const USERS = {
-  "gabriel.marques": { id_tecnico: "306", senha: "sup@306" },
+  "marques": { id_tecnico: "306", senha: "admin" },
   "diego.sousa": { id_tecnico: "377", senha: "sup@377" },
   "rodrigo.akira": { id_tecnico: "367", senha: "sup@367" },
   "pedro.santos": { id_tecnico: "359", senha: "sup@359" },
@@ -15,7 +15,7 @@ const USERS = {
   "joao.gomes": { id_tecnico: "313", senha: "sup@313" },
   "gabriel.rosa": { id_tecnico: "307", senha: "sup@307" },
   "gabriel.lima": { id_tecnico: "386", senha: "sup@386" },
-  "cesar.braganca": { id_tecnico: "202", senha: "sup@202" },
+  "cesar": { id_tecnico: "202", senha: "cesaradmin" },
 };
 
 export default function LoginScreen({ onLogin }) {
@@ -134,8 +134,8 @@ export default function LoginScreen({ onLogin }) {
         </div>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            Sistema de Agendamento Automatizado
+          <p className="text-sm text-gray-500">
+            Desenvolvido por @GabrielMarques011
           </p>
         </div>
       </div>

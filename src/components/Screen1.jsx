@@ -14,14 +14,15 @@ import { Search, User, Phone, FileText, CreditCard } from 'lucide-react';
  */
 export default function Screen1({ formData, setFormData, nextStep }) {
   const [loading, setLoading] = useState(false);
-  const [cpfInput, setCpfInput] = useState('');
+  //const [cpfInput, setCpfInput] = useState('');
   // agora cada item em contracts terá { id, label, raw }
   const [contracts, setContracts] = useState([]);        // lista de contratos do cliente
   const [clientFound, setClientFound] = useState(false); // true quando clientId foi preenchido
   const [errorMsg, setErrorMsg] = useState(null);
   const [contractWarning, setContractWarning] = useState(null); // mensagem do aviso sobre status_internet
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+  //const API_BASE = import.meta.env.BACKEND_IP;
+  //console.log(API_BASE)
 
   const onlyDigits = (s = '') => ('' + s).replace(/\D/g, '');
 
@@ -33,6 +34,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
     setContractWarning(null);
     setFormData(prev => ({
       ...prev,
+      cpf: '',
       clientId: '',
       nome_cliente: '',
       telefone_celular: '',
@@ -43,7 +45,8 @@ export default function Screen1({ formData, setFormData, nextStep }) {
   const handleBuscarCliente = async () => {
     setErrorMsg(null);
 
-    const digits = onlyDigits(cpfInput);
+    //const digits = onlyDigits(cpfInput);
+    const digits = onlyDigits(formData.cpf);
     if (!digits || digits.length !== 11) {
       alert('Digite um CPF válido (11 dígitos).');
       return;
@@ -59,7 +62,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
         rp: '1'
       };
 
-      const resp = await fetch(`${API_BASE}/api/cliente`, {
+      const resp = await fetch(`http://10.0.30.251:5000/api/cliente`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -110,7 +113,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
         rp: '50'
       };
 
-      const resp = await fetch(`${API_BASE}/api/cliente_contrato`, {
+      const resp = await fetch(`http://10.0.30.251:5000/api/cliente_contrato`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -234,13 +237,13 @@ export default function Screen1({ formData, setFormData, nextStep }) {
             <div className="relative flex-1">
               <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
-                type="text"
-                placeholder="000.000.000-00"
-                value={cpfInput}
-                onChange={e => setCpfInput(e.target.value)}
-                disabled={loading}
-                className="w-full bg-white pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
-              />
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={formData.cpf || ""}
+                  onChange={e => setFormData({ ...formData, cpf: e.target.value })}
+                  disabled={loading}
+                  className="w-full bg-white pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+                />
             </div>
             <button 
               type="button" 

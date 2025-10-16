@@ -32,6 +32,9 @@ export default function Screen6({ formData, prevStep }) {
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     const userId = storedUser.id_tecnico || "147";
 
+    // normaliza isCondominio
+    const isCondo = !!formData.isCondominio;
+
     try {
       // Monta payload de transferência (tolerante a nomes diferentes de chave)
       const transferPayload = {
@@ -40,20 +43,25 @@ export default function Screen6({ formData, prevStep }) {
         clientId: formData.clientId,
         contractId: formData.contractId,
         cep: formData.cep,
+
+        // sinaliza explicitamente se é condomínio
+        isCondominio: isCondo,
+
         // condominio fields (envia tanto id_condominio quanto condominio para garantir compatibilidade)
-        id_condominio: formData.condominio || formData.condominioId || formData.id_condominio || "",
-        condominio: formData.condominioName || formData.condominio || "",
-        bloco: formData.bloco || "",
-        apartamento: formData.apartment || formData.apartment || "",
+        id_condominio: isCondo ? (formData.condominio || formData.condominioId || formData.id_condominio || "") : "",
+        condominio: isCondo ? (formData.condominioName || formData.condominio || "") : "",
+        bloco: isCondo ? (formData.bloco || "") : "",
+        apartamento: isCondo ? (formData.apartment || formData.apartamento || "") : "",
+
         // endereço
         address: formData.address || "",
         neighborhood: formData.neighborhood || "",
         number: formData.number || "",
-        oldAddress: formData.oldAddress || formData.oldAddress || "",
-        oldNeighborhood: formData.oldNeighborhood || formData.oldNeighborhood || "",
-        oldNumber: formData.oldNumber || formData.oldNumber || "",
-        oldComplemento: formData.oldComplemento || formData.oldComplemento || "",
-        hasPorta: formData.hasPorta || false,
+        oldAddress: formData.oldAddress || "",
+        oldNeighborhood: formData.oldNeighborhood || "",
+        oldNumber: formData.oldNumber || "",
+        oldComplemento: formData.oldComplemento || "",
+        hasPorta: !!formData.hasPorta,
         portaNumber: formData.portaNumber || "",
         valueType: formData.valueType || "renovacao",
         taxValue: formData.taxValue || "",
@@ -61,14 +69,17 @@ export default function Screen6({ formData, prevStep }) {
         period: formData.period || "",
         nome_cliente: formData.nome_cliente || "",
         telefone: formData.telefone_celular || "",
+
         // envia cidade preferencialmente como ID (cityId), senão nome
         cidade: formData.cityId || formData.cidade || formData.city || "",
         state: formData.state || "",
+
         // lat/lng: aceita várias chaves
         lat: formData.lat ?? formData.latitude ?? "",
         lng: formData.lng ?? formData.longitude ?? "",
         city_ibge: formData.city_ibge || "",
         complemento: formData.complemento || "",
+
         // --- nova chave requerida pelo backend ---
         melhor_horario_reserva:
           formData.melhor_horario_reserva ||
@@ -78,7 +89,7 @@ export default function Screen6({ formData, prevStep }) {
 
       console.log("Enviando /api/transfer payload:", transferPayload);
 
-      const resTransfer = await fetch("http://localhost:5000/api/transfer", {
+      const resTransfer = await fetch("http://10.0.30.251:5000/api/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(transferPayload)
@@ -107,22 +118,29 @@ export default function Screen6({ formData, prevStep }) {
         bairro: formData.neighborhood || "",
         neighborhood: formData.neighborhood || "",
         complemento: formData.complemento || "",
+
         // cidade como id ou nome (enviar ambas chaves possíveis)
         cidade: formData.cityId || formData.cidade || formData.city || "",
         city: formData.cityId || formData.city || formData.cidade || "",
         estado: formData.state || formData.estado || "SP",
         state: formData.state || "",
+
         lat: formData.lat ?? formData.latitude ?? "",
         lng: formData.lng ?? formData.longitude ?? "",
         latitude: formData.lat ?? formData.latitude ?? "",
         longitude: formData.lng ?? formData.longitude ?? "",
         city_ibge: formData.city_ibge || "",
+
         motivo_cancelamento: " ", // forçar espaco
+
+        // sinaliza explicitamente isCondominio
+        isCondominio: isCondo,
+
         // condominio fields (tanto id quanto nome e bloco/apartamento)
-        id_condominio: formData.condominio || formData.condominioId || formData.id_condominio || "",
-        condominio: formData.condominioName || formData.condominio || "",
-        bloco: formData.bloco || "",
-        apartamento: formData.apartment || formData.apartment || ""
+        id_condominio: isCondo ? (formData.condominio || formData.condominioId || formData.id_condominio || "") : "",
+        condominio: isCondo ? (formData.condominioName || formData.condominio || "") : "",
+        bloco: isCondo ? (formData.bloco || "") : "",
+        apartamento: isCondo ? (formData.apartment || formData.apartamento || "") : ""
       };
 
       // só injetar cep se for válido (evita enviar CEP inválido)
@@ -135,7 +153,7 @@ export default function Screen6({ formData, prevStep }) {
 
       console.log("Enviando /api/update_contrato payload:", updatePayload);
 
-      const resUpdate = await fetch("http://localhost:5000/api/update_contrato", {
+      const resUpdate = await fetch("http://10.0.30.251:5000/api/update_contrato", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatePayload)
