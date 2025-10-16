@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import './App.css';
 import 'boxicons/css/boxicons.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
-import 'boxicons/css/boxicons.min.css';
 
+import LoginScreen from './components/LoginScreen';
 import ProgressBar from './components/ProcessBar';
 import Screen1 from './components/Screen1';
 import Screen2 from './components/Screen2';
@@ -15,6 +14,8 @@ import Screen6 from './components/Screen6';
 
 function App() {
   const [step, setStep] = useState(1);
+  const [user, setUser] = useState(null); // Guarda o usuário logado
+
   const [formData, setFormData] = useState({
     clientId: '',
     contractId: '',
@@ -41,16 +42,32 @@ function App() {
     taxValue: '',
     scheduledDate: '',
     period: 'comercial',
-    id_tecnico: '147'
+    id_tecnico: '', // será definido após login
   });
 
   const nextStep = () => setStep((s) => s + 1);
   const prevStep = () => setStep((s) => s - 1);
 
+  // Caso o usuário ainda não tenha feito login, mostra a tela de login
+  if (!user) {
+    return <LoginScreen onLogin={(userData) => {
+      setUser(userData);
+      setFormData((prev) => ({
+        ...prev,
+        id_tecnico: userData.id_tecnico, // injeta ID do técnico logado
+      }));
+    }} />;
+  }
+
   return (
     <div className="container">
       <div className="header">
-        <div className="system-title">Sistema Transferência de Endereço</div>
+        <div className="system-title">
+          Sistema Transferência de Endereço
+        </div>
+        <div className="user-info">
+          Logado como: <strong>{user.nome}</strong>
+        </div>
         <ProgressBar step={step} />
       </div>
 

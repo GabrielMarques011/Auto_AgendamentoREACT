@@ -28,9 +28,15 @@ export default function Screen6({ formData, prevStep }) {
   const handleFinalize = async () => {
     setLoading(true);
 
+    // pega o ID do técnico logado do localStorage (ou 147 se não tiver)
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = storedUser.id_tecnico || "147";
+
     try {
       // Monta payload de transferência (tolerante a nomes diferentes de chave)
       const transferPayload = {
+        id_responsavel_tecnico: userId,
+
         clientId: formData.clientId,
         contractId: formData.contractId,
         cep: formData.cep,
