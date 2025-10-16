@@ -7,8 +7,16 @@ export default function Screen6({ formData, prevStep }) {
 
   const periodToHour = {
     comercial: "10:00:00",
-    manha: "09:00:00",
-    tarde: "14:00:00",
+    manha: "08:00:00",
+    tarde: "13:00:00",
+  };
+
+  // Mapear período para letra esperada pelo backend
+  const periodToReserveLetter = {
+    comercial: "Q",
+    manha: "M",
+    tarde: "T",
+    noite: "N",
   };
 
   const formatScheduledDate = () => {
@@ -35,10 +43,10 @@ export default function Screen6({ formData, prevStep }) {
         address: formData.address || "",
         neighborhood: formData.neighborhood || "",
         number: formData.number || "",
-        oldAddress: formData.oldAddress || "",
-        oldNeighborhood: formData.oldNeighborhood || "",
-        oldNumber: formData.oldNumber || "",
-        oldComplemento: formData.oldComplemento || "",
+        oldAddress: formData.oldAddress || formData.oldAddress || "",
+        oldNeighborhood: formData.oldNeighborhood || formData.oldNeighborhood || "",
+        oldNumber: formData.oldNumber || formData.oldNumber || "",
+        oldComplemento: formData.oldComplemento || formData.oldComplemento || "",
         hasPorta: formData.hasPorta || false,
         portaNumber: formData.portaNumber || "",
         valueType: formData.valueType || "renovacao",
@@ -54,7 +62,12 @@ export default function Screen6({ formData, prevStep }) {
         lat: formData.lat ?? formData.latitude ?? "",
         lng: formData.lng ?? formData.longitude ?? "",
         city_ibge: formData.city_ibge || "",
-        complemento: formData.complemento || ""
+        complemento: formData.complemento || "",
+        // --- nova chave requerida pelo backend ---
+        melhor_horario_reserva:
+          formData.melhor_horario_reserva ||
+          periodToReserveLetter[formData.period] ||
+          "Q",
       };
 
       console.log("Enviando /api/transfer payload:", transferPayload);
@@ -110,6 +123,9 @@ export default function Screen6({ formData, prevStep }) {
       if (validCep) {
         updatePayload.cep = cepSanitized;
       }
+
+      // adiciona também no payload de update para persistência (opcional no backend)
+      updatePayload.melhor_horario_reserva = transferPayload.melhor_horario_reserva;
 
       console.log("Enviando /api/update_contrato payload:", updatePayload);
 

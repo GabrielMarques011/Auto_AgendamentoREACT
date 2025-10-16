@@ -4,6 +4,13 @@ import { CalendarDays } from "lucide-react";
 export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
   const today = new Date().toISOString().split("T")[0];
 
+  const periodMapToReserve = {
+    comercial: "Q", // Comercial -> Qualquer
+    manha: "M",
+    tarde: "T",
+    noite: "N" // caso adicione opção Noite futuramente
+  };
+
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
     if (selectedDate < today) {
@@ -12,6 +19,14 @@ export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
     } else {
       setFormData({ ...formData, scheduledDate: selectedDate });
     }
+  };
+
+  const handleSelectPeriod = (period) => {
+    setFormData({
+      ...formData,
+      period,
+      melhor_horario_reserva: periodMapToReserve[period] || "Q"
+    });
   };
 
   const handleNext = () => {
@@ -47,6 +62,7 @@ export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
               value={formData.scheduledDate || ""}
               onChange={handleDateChange}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-700 bg-white"
+              aria-label="Data do agendamento"
             />
           </div>
           <small className="block mt-1.5 text-sm text-gray-500">
@@ -59,16 +75,17 @@ export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
             <span className="text-sm font-medium text-gray-700">Período:</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {["comercial", "manha", "tarde"].map(period => (
+            {["comercial", "manha", "tarde"].map((period) => (
               <button
                 key={period}
                 type="button"
-                onClick={() => setFormData({ ...formData, period })}
+                onClick={() => handleSelectPeriod(period)}
                 className={`px-6 py-4 rounded-lg font-medium transition-all ${
                   formData.period === period
-                    ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-600 ring-offset-2'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? "bg-blue-600 text-white shadow-md ring-2 ring-blue-600 ring-offset-2"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
+                aria-pressed={formData.period === period}
               >
                 {period.charAt(0).toUpperCase() + period.slice(1)}
               </button>
@@ -86,8 +103,9 @@ export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
               <div>
                 <p className="text-sm font-medium text-green-800">Agendamento confirmado</p>
                 <p className="text-sm text-green-700 mt-1">
-                  Data: {new Date(formData.scheduledDate + 'T00:00:00').toLocaleDateString('pt-BR')} - 
-                  Período: {formData.period.charAt(0).toUpperCase() + formData.period.slice(1)}
+                  Data: {new Date(formData.scheduledDate + "T00:00:00").toLocaleDateString("pt-BR")} -{" "}
+                  Período: {formData.period.charAt(0).toUpperCase() + formData.period.slice(1)}{" "}
+                  {formData.melhor_horario_reserva ? `(${formData.melhor_horario_reserva})` : ""}
                 </p>
               </div>
             </div>
@@ -95,13 +113,13 @@ export default function Screen5({ formData, setFormData, nextStep, prevStep }) {
         )}
 
         <div className="flex justify-between pt-4">
-          <button 
+          <button
             onClick={prevStep}
             className="px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors shadow-sm hover:shadow-md"
           >
             ← Voltar
           </button>
-          <button 
+          <button
             onClick={handleNext}
             className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
           >
