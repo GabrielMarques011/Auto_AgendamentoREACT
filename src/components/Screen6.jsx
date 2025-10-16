@@ -38,7 +38,7 @@ export default function Screen6({ formData, prevStep }) {
         id_condominio: formData.condominio || formData.condominioId || formData.id_condominio || "",
         condominio: formData.condominioName || formData.condominio || "",
         bloco: formData.bloco || "",
-        apartamento: formData.apartment || formData.apartamento || "",
+        apartamento: formData.apartment || formData.apartment || "",
         // endereço
         address: formData.address || "",
         neighborhood: formData.neighborhood || "",
@@ -116,7 +116,7 @@ export default function Screen6({ formData, prevStep }) {
         id_condominio: formData.condominio || formData.condominioId || formData.id_condominio || "",
         condominio: formData.condominioName || formData.condominio || "",
         bloco: formData.bloco || "",
-        apartamento: formData.apartment || formData.apartamento || ""
+        apartamento: formData.apartment || formData.apartment || ""
       };
 
       // só injetar cep se for válido (evita enviar CEP inválido)
@@ -143,7 +143,17 @@ export default function Screen6({ formData, prevStep }) {
 
       console.log("Contrato atualizado:", jsonUpdate);
 
+      // mantém a mensagem que você já tinha
       alert("Transferência, OS e atualização do contrato concluídos com sucesso!");
+
+      // retorna para a tela inicial como se tivesse dado F5
+      // (usa alert bloqueante, então o reload ocorrerá após o usuário fechar o diálogo)
+      try {
+        window.location.reload();
+      } catch (reloadErr) {
+        console.warn("Falha ao recarregar a página automaticamente:", reloadErr);
+      }
+
     } catch (err) {
       console.error("Erro ao finalizar agendamento:", err);
       alert("Erro ao finalizar: " + (err.message || String(err)));
