@@ -292,18 +292,38 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
           </button>
           <button
             onClick={() => {
-              // Verifica se é necessário informar a porta
-              if (formData.hasPorta) {
-                const porta = Number(formData.portaNumber);
+              const cep = String(formData.oldCep || "").trim();
+              const endereco = String(formData.oldAddress || "").trim();
+              const bairro = String(formData.oldNeighborhood || "").trim();
+              const numero = String(formData.oldNumber || "").trim();
 
-                // Validação: se vazio, não numérico ou fora de 1–24
-                if (!porta || isNaN(porta) || porta < 1 || porta > 24) {
-                  alert("Informe um número de porta válido (entre 1 e 24) antes de continuar.");
-                  return; // impede o avanço
-                }
+              // 🔹 Verificação obrigatória de todos os campos
+              if (!cep) {
+                alert("Por favor, preencha o CEP antes de continuar.");
+                return;
               }
 
-              // Se passou na validação, pode seguir
+              if (!/^\d{5}-?\d{3}$/.test(cep)) {
+                alert("Informe um CEP válido no formato 00000-000.");
+                return;
+              }
+
+              if (!endereco) {
+                alert("Por favor, preencha o campo Rua/Avenida antes de continuar.");
+                return;
+              }
+
+              if (!bairro) {
+                alert("Por favor, preencha o campo Bairro antes de continuar.");
+                return;
+              }
+
+              if (!numero) {
+                alert("Por favor, preencha o campo Número antes de continuar.");
+                return;
+              }
+
+              // Se tudo estiver preenchido corretamente → avança
               nextStep();
             }}
             className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"

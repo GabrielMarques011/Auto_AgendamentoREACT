@@ -27,7 +27,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
   const onlyDigits = (s = '') => ('' + s).replace(/\D/g, '');
 
   const resetAll = () => {
-    setCpfInput('');
+    //setCpfInput('');
     setContracts([]);
     setClientFound(false);
     setErrorMsg(null);

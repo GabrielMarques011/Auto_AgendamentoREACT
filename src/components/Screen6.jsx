@@ -111,6 +111,7 @@ export default function Screen6({ formData, prevStep }) {
       const updatePayload = {
         contractId: formData.contractId,
         id_contrato: formData.contractId,
+        clientId: formData.clientId,
         endereco: formData.address || "",
         address: formData.address || "",
         numero: formData.number || "",
