@@ -14,20 +14,15 @@ import { Search, User, Phone, FileText, CreditCard } from 'lucide-react';
  */
 export default function Screen1({ formData, setFormData, nextStep }) {
   const [loading, setLoading] = useState(false);
-  //const [cpfInput, setCpfInput] = useState('');
   // agora cada item em contracts terá { id, label, raw }
   const [contracts, setContracts] = useState([]);        // lista de contratos do cliente
   const [clientFound, setClientFound] = useState(false); // true quando clientId foi preenchido
   const [errorMsg, setErrorMsg] = useState(null);
   const [contractWarning, setContractWarning] = useState(null); // mensagem do aviso sobre status_internet
 
-  //const API_BASE = import.meta.env.BACKEND_IP;
-  //console.log(API_BASE)
-
   const onlyDigits = (s = '') => ('' + s).replace(/\D/g, '');
 
   const resetAll = () => {
-    //setCpfInput('');
     setContracts([]);
     setClientFound(false);
     setErrorMsg(null);
@@ -45,7 +40,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
   const handleBuscarCliente = async () => {
     setErrorMsg(null);
 
-    //const digits = onlyDigits(cpfInput);
     const digits = onlyDigits(formData.cpf);
     if (!digits || digits.length !== 11) {
       alert('Digite um CPF válido (11 dígitos).');
@@ -99,6 +93,49 @@ export default function Screen1({ formData, setFormData, nextStep }) {
     }
   };
 
+  // função utilitária que verifica o campo status_internet e seta o aviso se necessário
+  // DECLARADA como função para evitar ReferenceError (hoisted)
+  function checkContractInternetStatus(rawRecord) {
+    if (!rawRecord) {
+      setContractWarning(null);
+      return;
+    }
+
+    // tenta várias chaves possíveis que o IXC pode retornar
+    const statusRaw = (
+      rawRecord.status_internet ||
+      rawRecord.statusInternet ||
+      rawRecord.status_internet_contrato ||
+      rawRecord.status_contrato ||
+      rawRecord.status ||
+      rawRecord.st ||
+      ""
+    ).toString().trim().toUpperCase();
+
+    const statusMap = {
+      CM: 'Bloqueio Manual',
+      CA: 'Bloqueio Automático',
+      FA: 'Financeiro em Atraso',
+      AA: 'Aguardando Assinatura',
+      A: 'Ativo'
+    };
+
+    if (!statusRaw) {
+      setContractWarning(null);
+      return;
+    }
+
+    // Se for exatamente 'A' (ativo) não mostramos aviso
+    if (statusRaw === 'A' || statusRaw === 'ATIVO') {
+      setContractWarning(null); // tudo ok
+      return;
+    }
+
+    // monta mensagem amigável
+    const human = statusMap[statusRaw] || statusRaw;
+    setContractWarning(`Atenção: esse contrato tem status de internet "${human}" (${statusRaw}).`);
+  }
+
   const buscarContratos = async (clientId) => {
     setErrorMsg(null);
     setContractWarning(null);
@@ -126,25 +163,47 @@ export default function Screen1({ formData, setFormData, nextStep }) {
         throw new Error(msg);
       }
 
-      // backend devolve objeto com "registros": [...]
       const registros = data.registros || [];
 
-      // Normaliza mantendo o registro cru para checar status_internet
-      const normalized = registros.map(r => ({
-        id: r.id || r.ID || r.id_contrato || r.numero || '',
-        label: r.contrato || r.contrato_descricao || (r.contrato ? String(r.contrato) : (`Contrato ${r.id || ''}`)),
-        raw: r
-      }));
+      // utilitário para extrair o status do contrato (tenta várias chaves)
+      const extractStatusCode = (r) => {
+        const s = r.status || r.situacao || r.st || r.status_contrato || r.statusContrato || r.status_contrato_internet || "";
+        return String(s || "").trim().toUpperCase().charAt(0) || "";
+      };
 
-      setContracts(normalized);
+      const statusLabel = (code) => {
+        const map = { P: "Pré-contrato", A: "Ativo", I: "Inativo", N: "Negativado", D: "Desistiu" };
+        return map[code] || (code || "");
+      };
 
-      // se só houver 1 contrato já seleciona automaticamente e verifica status_internet
-      if (normalized.length === 1) {
-        const single = normalized[0];
+      // Normaliza mantendo o registro cru para checar status_internet e status do contrato
+      const normalized = registros.map(r => {
+        const id = r.id || r.ID || r.id_contrato || r.numero || '';
+        const label = r.contrato || r.contrato_descricao || (r.contrato ? String(r.contrato) : (`Contrato ${id}`));
+        const statusCode = extractStatusCode(r);
+        return {
+          id,
+          label,
+          raw: r,
+          statusCode,
+          statusLabel: statusLabel(statusCode)
+        };
+      });
+
+      // Filtra EXCLUINDO contratos com status 'D' (Desistiu) e 'I' (Inativo)
+      // Assim P (Pré-contrato), A, N, etc. serão exibidos.
+      const visible = normalized.filter(c => !['D', 'I'].includes(String(c.statusCode)));
+
+      setContracts(visible);
+
+      // se só houver 1 contrato visível já seleciona automaticamente e verifica status_internet
+      if (visible.length === 1) {
+        const single = visible[0];
         setFormData(prev => ({ ...prev, contractId: single.id }));
+        // checkContractInternetStatus está declarado acima (function hoisted)
         checkContractInternetStatus(single.raw); // verifica e mostra aviso se necessário
       } else {
-        // limpar contractId caso o cliente tenha sido trocado
+        // limpar contractId caso o cliente tenha sido trocado ou haja múltiplos contratos
         setFormData(prev => ({ ...prev, contractId: '' }));
       }
     } catch (err) {
@@ -155,39 +214,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  // função utilitária que verifica o campo status_internet e seta o aviso se necessário
-  const checkContractInternetStatus = (rawRecord) => {
-    if (!rawRecord) {
-      setContractWarning(null);
-      return;
-    }
-
-    // tenta várias chaves possíveis que o IXC pode retornar
-    const statusRaw = (rawRecord.status_internet || rawRecord.statusInternet || rawRecord.status_internet_contrato || rawRecord.status_internet_contrato || rawRecord.status || rawRecord.st || "").toString().trim().toUpperCase();
-
-    const statusMap = {
-      CM: 'Bloqueio Manual',
-      CA: 'Bloqueio Automático',
-      FA: 'Financeiro em Atraso',
-      AA: 'Aguardando Assinatura',
-      A: 'Ativo'
-    };
-
-    if (!statusRaw) {
-      setContractWarning(null);
-      return;
-    }
-
-    if (statusRaw === 'A') {
-      setContractWarning(null); // tudo ok
-      return;
-    }
-
-    // monta mensagem amigável
-    const human = statusMap[statusRaw] || statusRaw;
-    setContractWarning(`Atenção: esse contrato tem status de internet "${human}" (${statusRaw}).`);
   };
 
   const handleContractSelect = (e) => {
@@ -214,7 +240,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
     }
 
     // opcional: impedir avanço se houver bloqueio de internet
-    // se preferir apenas avisar, comente as linhas abaixo
     /* const hasWarning = !!contractWarning;
     if (hasWarning) {
       if (!window.confirm(`${contractWarning}\n\nDeseja continuar mesmo assim?`)) return;

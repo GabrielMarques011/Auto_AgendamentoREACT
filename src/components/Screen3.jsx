@@ -34,66 +34,114 @@ export default function Screen3({ formData, setFormData, nextStep, prevStep }) {
     if (!contractId) return;
 
     const fetchOldAddressFromContract = async () => {
-      setLoading(true);
-      setFetchError(null);
-      try {
-        //const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
-        const payload = {
-          qtype: "id",
-          query: String(contractId),
-          oper: "=",
-          page: "1",
-          rp: "1"
-        };
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const payload = {
+        qtype: "id",
+        query: String(contractId),
+        oper: "=",
+        page: "1",
+        rp: "1"
+      };
 
-        const res = await fetch(`http://10.0.30.251:5000/api/cliente_contrato`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+      const res = await fetch(`http://10.0.30.251:5000/api/cliente_contrato`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          console.warn("Erro ao obter contrato:", data);
-          setFetchError(data.error || "Erro ao buscar contrato");
-          setLoading(false);
-          return;
-        }
-
-        // data pode ser a resposta inteira do IXC ou já uma estrutura custom
-        const registro = (data.registros && data.registros[0]) ? data.registros[0] : (data.registro || data);
-
-        if (!registro) {
-          setFetchError("Registro de contrato não encontrado na resposta.");
-          setLoading(false);
-          return;
-        }
-
-        // Mapeia possíveis chaves que o IXC usa
-        const contratoEndereco = registro.endereco || registro.address || registro.logradouro || "";
-        const contratoNumero = registro.numero || registro.number || registro.nro || "";
-        const contratoBairro = registro.bairro || registro.neighborhood || "";
-        const contratoCep = registro.cep || registro.CEP || registro.Cep || "";
-        const contratoCidade = registro.cidade || registro.city || registro.id_cidade || "";
-
-        // Atualiza apenas campos vazios (não sobrescreve entrada manual do usuário)
-        setFormData(prev => ({
-          ...prev,
-          oldAddress: prev.oldAddress && prev.oldAddress.trim() ? prev.oldAddress : (contratoEndereco || prev.oldAddress || ""),
-          oldNumber: prev.oldNumber && prev.oldNumber.toString().trim() ? prev.oldNumber : (contratoNumero || prev.oldNumber || ""),
-          oldNeighborhood: prev.oldNeighborhood && prev.oldNeighborhood.trim() ? prev.oldNeighborhood : (contratoBairro || prev.oldNeighborhood || ""),
-          oldCep: prev.oldCep && prev.oldCep.toString().trim() ? prev.oldCep : (formatCepPretty(contratoCep) || prev.oldCep || ""),
-          oldCity: prev.oldCity && prev.oldCity.toString().trim() ? prev.oldCity : (contratoCidade || prev.oldCity || "")
-        }));
-
-      } catch (err) {
-        console.error("Erro fetch contrato:", err);
-        setFetchError(String(err) || "Erro desconhecido");
-      } finally {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.warn("Erro ao obter contrato:", data);
+        setFetchError(data.error || "Erro ao buscar contrato");
         setLoading(false);
+        return;
       }
-    };
 
+      // data pode ser a resposta inteira do IXC ou já uma estrutura custom
+      const registro = (data.registros && data.registros[0]) ? data.registros[0] : (data.registro || data);
+
+      if (!registro) {
+        setFetchError("Registro de contrato não encontrado na resposta.");
+        setLoading(false);
+        return;
+      }
+
+      // DEBUG TEMP: inspecione no console as chaves/valores retornados
+      // Remova esse console.log quando confirmar os nomes dos campos.
+      console.log("DEBUG /cliente_contrato -> registro raw:", registro);
+
+      const tryPick = (obj, keys) => {
+        for (const k of keys) {
+          if (Object.prototype.hasOwnProperty.call(obj, k)) {
+            const v = obj[k];
+            if (v !== undefined && v !== null && String(v).trim() !== "") return v;
+          }
+        }
+        return "";
+      };
+
+      // detecta 'S' de várias formas possíveis (string, número, booleano)
+      const padraoVal = registro.endereco_padrao_cliente ?? registro.endereco_padrao ?? registro.enderecoPadrao ?? registro.endereco_padrao === 1 ? registro.endereco_padrao : undefined;
+      const padraoS = (() => {
+        const v = padraoVal;
+        if (v === undefined || v === null) return false;
+        const s = String(v).trim().toUpperCase();
+        return (s === "S" || s === "1" || s === "TRUE" || s === "T" || s === "SIM" || s === "Y");
+      })();
+
+      // Variantes comuns de nomes para os campos "_novo"
+      const enderecoKeys = padraoS
+        ? ["endereco_novo", "novo_endereco", "enderecoNovo", "enderecoNovo", "ENDERECO_NOVO", "endereco", "address", "logradouro"]
+        : ["endereco", "address", "logradouro", "endereco_novo", "novo_endereco", "enderecoNovo"];
+
+      const numeroKeys = padraoS
+        ? ["numero_novo", "novo_numero", "numeroNovo", "nro_novo", "numero", "number", "nro"]
+        : ["numero", "number", "nro", "numero_novo"];
+
+      const bairroKeys = padraoS
+        ? ["bairro_novo", "novo_bairro", "bairroNovo", "bairro", "neighborhood"]
+        : ["bairro", "neighborhood", "bairro_novo"];
+
+      const cepKeys = padraoS
+        ? ["cep_novo", "novo_cep", "cepNovo", "cep", "CEP", "Cep"]
+        : ["cep", "CEP", "Cep", "cep_novo"];
+
+      const cidadeKeys = padraoS
+        ? ["cidade_nova", "novo_cidade", "cidadeNovo", "cidade", "city", "id_cidade", "idCidade"]
+        : ["cidade", "city", "id_cidade", "cidade_nova", "id"];
+
+      const complementoKeys = padraoS
+        ? ["complemento_novo", "novo_complemento", "complementoNovo", "complemento", "completo", "complement"]
+        : ["complemento", "complement", "completo", "complemento_novo"];
+
+      const contratoEndereco = tryPick(registro, enderecoKeys);
+      const contratoNumero = tryPick(registro, numeroKeys);
+      const contratoBairro = tryPick(registro, bairroKeys);
+      const contratoCep = tryPick(registro, cepKeys);
+      const contratoCidade = tryPick(registro, cidadeKeys);
+      const contratoComplemento = tryPick(registro, complementoKeys);
+
+      // Atualiza apenas campos vazios (não sobrescreve entrada manual do usuário)
+      setFormData(prev => ({
+        ...prev,
+        oldAddress: prev.oldAddress && prev.oldAddress.trim() ? prev.oldAddress : (contratoEndereco || prev.oldAddress || ""),
+        oldNumber: prev.oldNumber && String(prev.oldNumber).trim() ? prev.oldNumber : (contratoNumero || prev.oldNumber || ""),
+        oldNeighborhood: prev.oldNeighborhood && prev.oldNeighborhood.trim() ? prev.oldNeighborhood : (contratoBairro || prev.oldNeighborhood || ""),
+        oldCep: prev.oldCep && String(prev.oldCep).trim() ? prev.oldCep : (formatCepPretty(contratoCep) || prev.oldCep || ""),
+        oldCity: prev.oldCity && String(prev.oldCity).trim() ? prev.oldCity : (contratoCidade || prev.oldCity || ""),
+        oldComplement: prev.oldComplement && String(prev.oldComplement).trim() ? prev.oldComplement : (contratoComplemento || prev.oldComplement || "")
+      }));
+
+    } catch (err) {
+      console.error("Erro fetch contrato:", err);
+      setFetchError(String(err) || "Erro desconhecido");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
     fetchOldAddressFromContract();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.contractId]);

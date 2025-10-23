@@ -15,6 +15,7 @@ const USERS = {
   "joao.gomes": { id_tecnico: "313", senha: "sup@313" },
   "gabriel.rosa": { id_tecnico: "307", senha: "sup@307" },
   "gabriel.lima": { id_tecnico: "386", senha: "sup@386" },
+  "marcos.piazzi": { id_tecnico: "389", senha: "sup@389" },
   "alison.silva": { id_tecnico: "337", senha: "sup@337" },
   "cesar": { id_tecnico: "202", senha: "cesaradmin" },
 };
