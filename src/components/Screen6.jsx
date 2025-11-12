@@ -1,9 +1,11 @@
 // src/components/Screen6.jsx
 import React, { useState } from "react";
-import { CheckCircle2, User, MapPin, Calendar, DollarSign, AlertCircle } from "lucide-react";
+import { CheckCircle2, User, MapPin, Calendar, DollarSign, AlertCircle, Copy, Check } from "lucide-react";
 
 export default function Screen6({ formData, prevStep }) {
   const [loading, setLoading] = useState(false);
+  const [successData, setSuccessData] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const periodToHour = {
     comercial: "10:00:00",
@@ -23,6 +25,48 @@ export default function Screen6({ formData, prevStep }) {
     if (!formData.scheduledDate) return "";
     const hour = periodToHour[formData.period] || "10:00:00";
     return `${formData.scheduledDate} ${hour}`;
+  };
+
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return "";
+    try {
+      return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatPeriodForDisplay = (period) => {
+    if (!period) return "";
+    const periodMap = {
+      comercial: "Comercial",
+      manha: "Manhã",
+      tarde: "Tarde",
+      noite: "Noite"
+    };
+    return periodMap[period] || period.charAt(0).toUpperCase() + period.slice(1);
+  };
+
+  const formatComplemento = (formData) => {
+    if (!formData.isCondominio) {
+      return formData.complemento || "Nenhum";
+    }
+    
+    const condominioName = formData.condominioName || formData.condominio || "Condomínio";
+    const bloco = formData.bloco || "";
+    const apartamento = formData.apartment || formData.apartamento || "";
+    
+    const parts = [condominioName];
+    
+    if (bloco) {
+      parts.push(`Bloco ${bloco}`);
+    }
+    
+    if (apartamento) {
+      parts.push(`Apartamento ${apartamento}`);
+    }
+    
+    return parts.join(" / ");
   };
 
   const handleFinalize = async () => {
@@ -168,16 +212,13 @@ export default function Screen6({ formData, prevStep }) {
 
       console.log("Contrato atualizado:", jsonUpdate);
 
-      // mantém a mensagem que você já tinha
-      alert("Transferência, OS e atualização do contrato concluídos com sucesso!");
-
-      // retorna para a tela inicial como se tivesse dado F5
-      // (usa alert bloqueante, então o reload ocorrerá após o usuário fechar o diálogo)
-      try {
-        window.location.reload();
-      } catch (reloadErr) {
-        console.warn("Falha ao recarregar a página automaticamente:", reloadErr);
-      }
+      // Salva os dados de sucesso para exibir o resumo
+      setSuccessData({
+        protocolo: jsonTransfer.protocolo_os || jsonTransfer.id_ticket,
+        endereco: `${formData.address}, ${formData.number} - ${formData.neighborhood}`,
+        complemento: formatComplemento(formData),
+        dataPeriodo: `${formatDateForDisplay(formData.scheduledDate)} - ${formatPeriodForDisplay(formData.period)}`
+      });
 
     } catch (err) {
       console.error("Erro ao finalizar agendamento:", err);
@@ -187,6 +228,96 @@ export default function Screen6({ formData, prevStep }) {
     }
   };
 
+    const copyToClipboard = async () => {
+    const text = `Poderia por gentileza confirmar se está tudo correto?
+
+*Protocolo Nº:* ${successData.protocolo}
+*Endereço:* ${successData.endereco}
+*Complemento:* ${successData.complemento}
+*Data/Período:* ${successData.dataPeriodo}`;
+
+    try {
+      // Método moderno
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Método antigo
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      console.error('Falha ao copiar texto: ', err);
+      alert('Falha ao copiar texto. Por favor, copie manualmente.');
+    }
+  };
+
+  const handleNewScheduling = () => {
+    window.location.reload();
+  };
+
+  // Tela de sucesso - resumo copiável
+  if (successData) {
+    return (
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="mb-8 text-center">
+          <div className="flex justify-center mb-4">
+            <CheckCircle2 className="w-16 h-16 text-green-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Agendamento Concluído com Sucesso!</h2>
+          <p className="text-gray-600">Abaixo está o resumo para enviar ao cliente</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Resumo do Agendamento</h3>
+            <button
+              onClick={copyToClipboard}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copied ? "Copiado!" : "Copiar Resumo"}
+            </button>
+          </div>
+          
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <pre className="whitespace-pre-wrap text-sm text-gray-800">
+{`Poderia por gentileza confirmar se está tudo correto?
+
+*Protocolo Nº:* ${successData.protocolo}
+*Endereço:* ${successData.endereco}
+*Complemento:* ${successData.complemento}
+*Data/Período:* ${successData.dataPeriodo}`}
+            </pre>
+          </div>
+
+          <div className="mt-4 text-sm text-gray-600">
+            <p>Clique em "Copiar Resumo" acima e cole no WhatsApp ou outro aplicativo para enviar ao cliente.</p>
+          </div>
+        </div>
+
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={handleNewScheduling}
+            className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Novo Agendamento
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Tela original de revisão
   return (
     <div className="w-full max-w-4xl mx-auto">
       <div className="mb-8">
@@ -323,17 +454,13 @@ export default function Screen6({ formData, prevStep }) {
             <div>
               <span className="text-sm font-medium text-gray-500">Data:</span>
               <p className="text-gray-800">
-                {formData.scheduledDate 
-                  ? new Date(formData.scheduledDate + 'T00:00:00').toLocaleDateString('pt-BR')
-                  : "—"}
+                {formatDateForDisplay(formData.scheduledDate) || "—"}
               </p>
             </div>
             <div>
               <span className="text-sm font-medium text-gray-500">Período:</span>
               <p className="text-gray-800">
-                {formData.period 
-                  ? formData.period.charAt(0).toUpperCase() + formData.period.slice(1)
-                  : "—"}
+                {formatPeriodForDisplay(formData.period) || "—"}
               </p>
             </div>
           </div>

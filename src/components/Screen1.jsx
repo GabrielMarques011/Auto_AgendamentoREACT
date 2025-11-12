@@ -1,6 +1,6 @@
 // src/components/Screen1.jsx
 import React, { useState } from 'react';
-import { Search, User, Phone, FileText, CreditCard } from 'lucide-react';
+import { Search, User, Phone, FileText, CreditCard, Loader } from 'lucide-react';
 
 /**
  * Screen1:
@@ -249,7 +249,18 @@ export default function Screen1({ formData, setFormData, nextStep }) {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto relative">
+      {/* Overlay de Loading */}
+      {loading && (
+        <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50 rounded-lg">
+          <div className="flex flex-col items-center gap-3">
+            <Loader className="w-8 h-8 text-blue-600 animate-spin" />
+            <p className="text-gray-700 font-medium">Buscando informações...</p>
+            <p className="text-sm text-gray-500">Aguarde enquanto carregamos os dados</p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Cliente e Contrato</h2>
         <p className="text-gray-600">Busque por CPF para localizar o cliente e escolher o contrato</p>
@@ -312,7 +323,8 @@ export default function Screen1({ formData, setFormData, nextStep }) {
                 <select 
                   value={formData.contractId || ''} 
                   onChange={handleContractSelect}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all appearance-none"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all appearance-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">-- Selecione o contrato --</option>
                   {contracts.map(c => (
@@ -339,7 +351,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
                   placeholder={clientFound ? "Digite o ID do contrato ou busque contratos" : "Busque o cliente primeiro"}
                   value={formData.contractId || ''}
                   onChange={e => setFormData({ ...formData, contractId: e.target.value })}
-                  disabled={!clientFound}
+                  disabled={!clientFound || loading}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
                 />
               </div>
@@ -359,7 +371,8 @@ export default function Screen1({ formData, setFormData, nextStep }) {
               value={formData.nome_cliente || ''}
               onChange={e => setFormData({ ...formData, nome_cliente: e.target.value })}
               placeholder="Nome será preenchido automaticamente"
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700"
+              disabled={loading}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
             />
           </div>
         </div>
@@ -373,7 +386,8 @@ export default function Screen1({ formData, setFormData, nextStep }) {
               value={formData.telefone_celular || ''}
               onChange={e => setFormData({ ...formData, telefone_celular: e.target.value })}
               placeholder="Telefones serão preenchidos automaticamente"
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white"
+              disabled={loading}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
             />
           </div>
         </div>
