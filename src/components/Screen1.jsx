@@ -1,26 +1,29 @@
 // src/components/Screen1.jsx
 import React, { useState } from 'react';
-import { Search, User, Phone, FileText, CreditCard, Loader } from 'lucide-react';
+import { User, Phone, FileText, CreditCard, Loader } from 'lucide-react';
 
 /**
  * Screen1:
- *  - Busca cliente por CPF (ou ID)
+ *  - Busca cliente por CPF ou CNPJ (ou ID)
  *  - Ao encontrar preenche clientId (disabled) e busca contratos do cliente
  *  - Exibe select de contratos para o usuário escolher
- *
- * Espera endpoints no backend:
- * POST /api/cliente         -> aceita { qtype: "cnpj_cpf", query: "66781892215", ... } ou { query: "12174" }
- * POST /api/cliente_contrato-> aceita { qtype: "id_cliente", query: "12174", ... }
  */
 export default function Screen1({ formData, setFormData, nextStep }) {
   const [loading, setLoading] = useState(false);
-  // agora cada item em contracts terá { id, label, raw }
-  const [contracts, setContracts] = useState([]);        // lista de contratos do cliente
-  const [clientFound, setClientFound] = useState(false); // true quando clientId foi preenchido
+  const [contracts, setContracts] = useState([]);
+  const [clientFound, setClientFound] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [contractWarning, setContractWarning] = useState(null); // mensagem do aviso sobre status_internet
+  const [contractWarning, setContractWarning] = useState(null);
 
-  const onlyDigits = (s = '') => ('' + s).replace(/\D/g, '');
+  // Função para validar se é CPF ou CNPJ
+  const validateDocument = (doc = '') => {
+    const digits = doc.replace(/\D/g, '');
+    if (digits.length === 11) return 'CPF válido';
+    if (digits.length === 14) return 'CNPJ válido';
+    return false;
+  };
+
+  const onlyDigits = (s = '') => s.replace(/\D/g, '');
 
   const resetAll = () => {
     setContracts([]);
@@ -29,7 +32,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
     setContractWarning(null);
     setFormData(prev => ({
       ...prev,
-      cpf: '',
+      cpf_cnpj: '',
       clientId: '',
       nome_cliente: '',
       telefone_celular: '',
@@ -40,9 +43,11 @@ export default function Screen1({ formData, setFormData, nextStep }) {
   const handleBuscarCliente = async () => {
     setErrorMsg(null);
 
-    const digits = onlyDigits(formData.cpf);
-    if (!digits || digits.length !== 11) {
-      alert('Digite um CPF válido (11 dígitos).');
+    const digits = onlyDigits(formData.cpf_cnpj);
+    const documentValidation = validateDocument(formData.cpf_cnpj);
+
+    if (!documentValidation) {
+      alert('Digite um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.');
       return;
     }
 
@@ -94,7 +99,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
   };
 
   // função utilitária que verifica o campo status_internet e seta o aviso se necessário
-  // DECLARADA como função para evitar ReferenceError (hoisted)
   function checkContractInternetStatus(rawRecord) {
     if (!rawRecord) {
       setContractWarning(null);
@@ -191,7 +195,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
       });
 
       // Filtra EXCLUINDO contratos com status 'D' (Desistiu) e 'I' (Inativo)
-      // Assim P (Pré-contrato), A, N, etc. serão exibidos.
       const visible = normalized.filter(c => !['D', 'I'].includes(String(c.statusCode)));
 
       setContracts(visible);
@@ -200,8 +203,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
       if (visible.length === 1) {
         const single = visible[0];
         setFormData(prev => ({ ...prev, contractId: single.id }));
-        // checkContractInternetStatus está declarado acima (function hoisted)
-        checkContractInternetStatus(single.raw); // verifica e mostra aviso se necessário
+        checkContractInternetStatus(single.raw);
       } else {
         // limpar contractId caso o cliente tenha sido trocado ou haja múltiplos contratos
         setFormData(prev => ({ ...prev, contractId: '' }));
@@ -238,13 +240,6 @@ export default function Screen1({ formData, setFormData, nextStep }) {
       alert('Escolha o contrato do cliente antes de prosseguir.');
       return;
     }
-
-    // opcional: impedir avanço se houver bloqueio de internet
-    /* const hasWarning = !!contractWarning;
-    if (hasWarning) {
-      if (!window.confirm(`${contractWarning}\n\nDeseja continuar mesmo assim?`)) return;
-    } */
-
     nextStep();
   };
 
@@ -263,23 +258,23 @@ export default function Screen1({ formData, setFormData, nextStep }) {
 
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Cliente e Contrato</h2>
-        <p className="text-gray-600">Busque por CPF para localizar o cliente e escolher o contrato</p>
+        <p className="text-gray-600">Busque por CPF ou CNPJ para localizar o cliente e escolher o contrato</p>
       </div>
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">CPF do Cliente</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">CPF ou CNPJ do Cliente</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
-                  type="text"
-                  placeholder="000.000.000-00"
-                  value={formData.cpf || ""}
-                  onChange={e => setFormData({ ...formData, cpf: e.target.value })}
-                  disabled={loading}
-                  className="w-full bg-white pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
-                />
+                type="text"
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                value={formData.cpf_cnpj || ""}
+                onChange={e => setFormData({ ...formData, cpf_cnpj: e.target.value })}
+                disabled={loading}
+                className="w-full bg-white pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+              />
             </div>
             <button 
               type="button" 
@@ -299,7 +294,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
               Limpar
             </button>
           </div>
-          <small className="block mt-1.5 text-sm text-gray-500">Você pode colar o CPF com pontos/traço ou somente números.</small>
+          <small className="block mt-1.5 text-sm text-gray-500">Você pode colar o CPF/CNPJ com pontos/traço/barras ou somente números.</small>
         </div>
 
         <div>
@@ -329,7 +324,7 @@ export default function Screen1({ formData, setFormData, nextStep }) {
                   <option value="">-- Selecione o contrato --</option>
                   {contracts.map(c => (
                     <option key={c.id} value={c.id}>
-                      {c.label} ({c.id})
+                      {c.label} ({c.id}) - {c.statusLabel}
                     </option>
                   ))}
                 </select>
