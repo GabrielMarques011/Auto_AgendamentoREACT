@@ -1,13 +1,7 @@
 // src/components/Screen1.jsx
 import React, { useState } from 'react';
-import { User, Phone, FileText, CreditCard, Loader } from 'lucide-react';
+import { User, Phone, FileText, CreditCard, Loader, Search, X } from 'lucide-react';
 
-/**
- * Screen1:
- *  - Busca cliente por CPF ou CNPJ (ou ID)
- *  - Ao encontrar preenche clientId (disabled) e busca contratos do cliente
- *  - Exibe select de contratos para o usuário escolher
- */
 export default function Screen1({ formData, setFormData, nextStep }) {
   const [loading, setLoading] = useState(false);
   const [contracts, setContracts] = useState([]);
@@ -244,82 +238,90 @@ export default function Screen1({ formData, setFormData, nextStep }) {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto relative">
-      {/* Overlay de Loading */}
+    <div className="h-full flex flex-col">
+      {/* Overlay de Loading Corporativo */}
       {loading && (
-        <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50 rounded-lg">
-          <div className="flex flex-col items-center gap-3">
-            <Loader className="w-8 h-8 text-blue-600 animate-spin" />
-            <p className="text-gray-700 font-medium">Buscando informações...</p>
-            <p className="text-sm text-gray-500">Aguarde enquanto carregamos os dados</p>
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
+          <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-2xl shadow-2xl border border-blue-200">
+            <Loader className="w-10 h-10 text-blue-600 animate-spin" />
+            <div className="text-center">
+              <p className="text-gray-800 font-semibold text-lg">Buscando informações...</p>
+              <p className="text-gray-600 mt-1">Aguarde enquanto carregamos os dados do cliente</p>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Header da Tela */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Cliente e Contrato</h2>
-        <p className="text-gray-600">Busque por CPF ou CNPJ para localizar o cliente e escolher o contrato</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">Cliente e Contrato</h2>
+        <p className="text-gray-600 text-lg">Busque por CPF ou CNPJ para localizar o cliente e escolher o contrato</p>
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">CPF ou CNPJ do Cliente</label>
-          <div className="flex gap-2">
+      <div className="space-y-6 flex-1">
+        {/* CPF/CNPJ */}
+        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <label className="block text-sm font-semibold text-gray-800 mb-3">CPF ou CNPJ do Cliente</label>
+          <div className="flex gap-3">
             <div className="relative flex-1">
-              <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
               <input
                 type="text"
                 placeholder="000.000.000-00 ou 00.000.000/0000-00"
                 value={formData.cpf_cnpj || ""}
                 onChange={e => setFormData({ ...formData, cpf_cnpj: e.target.value })}
                 disabled={loading}
-                className="w-full bg-white pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+                className="w-full text-gray-800 bg-white pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
               />
             </div>
             <button 
               type="button" 
               onClick={handleBuscarCliente} 
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
             >
-              {loading ? 'Buscando...' : 'Buscar Cliente'}
+              <Search className="w-4 h-4" />
+              {loading ? 'Buscando...' : 'Buscar'}
             </button>
             <button 
               type="button" 
               onClick={resetAll} 
               disabled={loading}
               title="Limpar"
-              className="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all duration-200 border border-gray-300 flex items-center gap-2"
             >
+              <X className="w-4 h-4" />
               Limpar
             </button>
           </div>
-          <small className="block mt-1.5 text-sm text-gray-500">Você pode colar o CPF/CNPJ com pontos/traço/barras ou somente números.</small>
+          <small className="block mt-2 text-sm text-gray-500">Você pode colar o CPF/CNPJ com pontos/traço/barras ou somente números.</small>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">ID do Cliente</label>
+        {/* ID do Cliente */}
+        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <label className="block text-sm font-semibold text-gray-800 mb-3">ID do Cliente</label>
           <input
             type="text"
             value={formData.clientId || ''}
             disabled
-            placeholder="Preenchido após busca"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+            placeholder="Preenchido automaticamente após a busca"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 cursor-not-allowed font-medium"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Contrato do Cliente</label>
+        {/* Contrato do Cliente */}
+        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <label className="block text-sm font-semibold text-gray-800 mb-3">Contrato do Cliente</label>
 
           {contracts.length > 0 ? (
             <>
               <div className="relative">
-                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
                 <select 
                   value={formData.contractId || ''} 
                   onChange={handleContractSelect}
                   disabled={loading}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all appearance-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full text-gray-800 pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all appearance-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="">-- Selecione o contrato --</option>
                   {contracts.map(c => (
@@ -332,75 +334,91 @@ export default function Screen1({ formData, setFormData, nextStep }) {
 
               {/* Banner de aviso sobre status_internet */}
               {contractWarning && (
-                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
-                  <strong>Atenção:</strong> <span className="ml-1">{contractWarning}</span>
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                    <strong className="text-yellow-800">Atenção:</strong>
+                    <span>{contractWarning}</span>
+                  </div>
                 </div>
               )}
             </>
           ) : (
             <div>
               <div className="relative">
-                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                 <input
                   type="text"
                   placeholder={clientFound ? "Digite o ID do contrato ou busque contratos" : "Busque o cliente primeiro"}
                   value={formData.contractId || ''}
                   onChange={e => setFormData({ ...formData, contractId: e.target.value })}
                   disabled={!clientFound || loading}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
                 />
               </div>
-              <small className="block mt-1.5 text-sm text-gray-500">
+              <small className="block mt-2 text-sm text-gray-500">
                 {clientFound ? 'Escolha na lista (se houver) ou digite o ID do contrato.' : 'Busque primeiro o cliente para listar contratos.'}
               </small>
             </div>
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Nome do Cliente que irá Receber a Equipe</label>
+        {/* Nome do Cliente */}
+        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <label className="block text-sm font-semibold text-gray-800 mb-3">Nome do Cliente que irá Receber a Equipe</label>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
             <input
               type="text"
               value={formData.nome_cliente || ''}
               onChange={e => setFormData({ ...formData, nome_cliente: e.target.value })}
               placeholder="Nome será preenchido automaticamente"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
             />
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Telefone de quem irá Receber a Equipe</label>
+        {/* Telefone */}
+        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <label className="block text-sm font-semibold text-gray-800 mb-3">Telefone de quem irá Receber a Equipe</label>
           <div className="relative">
-            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
             <input
               type="text"
               value={formData.telefone_celular || ''}
               onChange={e => setFormData({ ...formData, telefone_celular: e.target.value })}
               placeholder="Telefones serão preenchidos automaticamente"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
             />
           </div>
         </div>
 
+        {/* Mensagem de Erro */}
         {errorMsg && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <strong className="text-red-800 font-semibold">Erro / diagnóstico:</strong>
-            <div className="mt-2 text-sm text-red-700 whitespace-pre-wrap">{errorMsg}</div>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <div>
+                <strong className="text-red-800 font-semibold block">Erro no processo:</strong>
+                <div className="mt-1 text-sm text-red-700 whitespace-pre-wrap">{errorMsg}</div>
+              </div>
+            </div>
           </div>
         )}
 
+        {/* Botão Próximo */}
         <div className="flex justify-end pt-4">
           <button 
             onClick={handleNext} 
             disabled={loading}
-            className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow-md"
+            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2"
           >
-            Próximo →
+            <span>Próximo Passo</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
       </div>

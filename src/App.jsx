@@ -1,85 +1,78 @@
+// src/App.jsx
 import React, { useState } from 'react';
 import './App.css';
 import 'boxicons/css/boxicons.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
-import LoginScreen from './components/LoginScreen';
-import ProgressBar from './components/ProcessBar';
-import Screen1 from './components/Screen1';
-import Screen2 from './components/Screen2';
-import Screen3 from './components/Screen3';
-import Screen4 from './components/Screen4';
-import Screen5 from './components/Screen5';
-import Screen6 from './components/Screen6';
+import LoginScreen from './components/common/LoginScreen';
+import Layout from './components/layout/Layout';
+import TransferenciaEndereco from './components/agendamentos/transferencia-endereco/TransferenciaEndereco';
 
 function App() {
-  const [step, setStep] = useState(1);
-  const [user, setUser] = useState(null); // Guarda o usuário logado
+  const [user, setUser] = useState(null);
+  const [activeModule, setActiveModule] = useState('transferencia-endereco');
 
-  const [formData, setFormData] = useState({
-    clientId: '',
-    contractId: '',
-    nome_cliente: '',
-    telefone: '',
-    cidade: '',
-    cep: '',
-    isCondominio: false,
-    condominio: '',
-    outroCondominio: '',
-    apartment: '',
-    block: '',
-    address: '',
-    neighborhood: '',
-    number: '',
-    complement: '',
-    oldAddress: '',
-    oldNeighborhood: '',
-    oldNumber: '',
-    oldComplement: '',
-    hasPorta: false,
-    portaNumber: '',
-    valueType: 'renovacao',
-    taxValue: '',
-    scheduledDate: '',
-    period: 'comercial',
-    id_tecnico: '', // será definido após login
-  });
+  const handleLogin = (userData) => {
+    setUser(userData);
+  };
 
-  const nextStep = () => setStep((s) => s + 1);
-  const prevStep = () => setStep((s) => s - 1);
+  const handleLogout = () => {
+    setUser(null);
+  };
 
-  // Caso o usuário ainda não tenha feito login, mostra a tela de login
+  // Renderizar o módulo ativo
+  const renderActiveModule = () => {
+    switch (activeModule) {
+      case 'transferencia-endereco':
+        return <TransferenciaEndereco user={user} />;
+      
+      // Para outros módulos (em desenvolvimento)
+      case 'mudanca-ponto':
+      case 'instalacao-nova':
+      case 'visita-tecnica':
+      case 'transferencia-equipamento':
+      case 'manutencao':
+      default:
+        return (
+          <div className="w-full h-full flex items-center justify-center p-8">
+            <div className="max-w-2xl w-full text-center">
+              <div className="bg-blue-100 w-24 h-24 rounded-full flex items-center justify-center mb-8 mx-auto">
+                <div className="text-3xl">🚧</div>
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Módulo em Desenvolvimento
+              </h2>
+              <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                Esta funcionalidade estará disponível em breve. 
+                Estamos trabalhando para trazer mais opções de agendamento.
+              </p>
+              <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-200 max-w-md mx-auto">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                  <p className="text-yellow-800 font-medium text-center">
+                    No momento, utilize o módulo <strong>Transferência de Endereço</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
+
   if (!user) {
-    return <LoginScreen onLogin={(userData) => {
-      setUser(userData);
-      setFormData((prev) => ({
-        ...prev,
-        id_tecnico: userData.id_tecnico, // injeta ID do técnico logado
-      }));
-    }} />;
+    return <LoginScreen onLogin={handleLogin} />;
   }
 
   return (
-    <div className="container">
-      <div className="header">
-        <div className="system-title">
-          Sistema Transferência de Endereço
-        </div>
-        <div className="user-info">
-          Logado como: <strong>{user.nome}</strong>
-        </div>
-        <ProgressBar step={step} />
-      </div>
-
-      <div className="card">
-        {step === 1 && <Screen1 formData={formData} setFormData={setFormData} nextStep={nextStep} />}
-        {step === 2 && <Screen2 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 3 && <Screen3 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 4 && <Screen4 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 5 && <Screen5 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 6 && <Screen6 formData={formData} prevStep={prevStep} />}
-      </div>
-    </div>
+    <Layout 
+      activeModule={activeModule} 
+      setActiveModule={setActiveModule}
+      user={user}
+      onLogout={handleLogout}
+    >
+      {renderActiveModule()}
+    </Layout>
   );
 }
 
