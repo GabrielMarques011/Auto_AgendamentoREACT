@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, User, MapPin, Calendar, DollarSign, AlertCircle, Copy, Check, ArrowLeft, Phone, FileText, Home, Building } from "lucide-react";
 
-export default function Screen6({ formData, prevStep }) {
+export default function Screen6({ formData, prevStep, onReset }) {
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -231,7 +231,13 @@ export default function Screen6({ formData, prevStep }) {
   };
 
   const handleNewScheduling = () => {
-    window.location.reload();
+    // Verifica se existe a prop onReset (para voltar ao início do formulário)
+    if (onReset) {
+      onReset();
+    } else {
+      // Fallback: recarrega a página (comportamento antigo)
+      window.location.reload();
+    }
   };
 
   // Tela de sucesso

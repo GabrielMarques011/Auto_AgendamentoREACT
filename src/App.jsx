@@ -11,6 +11,7 @@ import TransferenciaEndereco from './components/agendamentos/transferencia-ender
 function App() {
   const [user, setUser] = useState(null);
   const [activeModule, setActiveModule] = useState('transferencia-endereco');
+  const [resetKey, setResetKey] = useState(0); // Chave para forçar reset do formulário
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -18,13 +19,25 @@ function App() {
 
   const handleLogout = () => {
     setUser(null);
+    setResetKey(0); // Resetar a chave ao fazer logout
+  };
+
+  // Função para resetar o formulário de transferência
+  const handleResetTransferencia = () => {
+    setResetKey(prev => prev + 1); // Altera a chave para forçar remontagem do componente
   };
 
   // Renderizar o módulo ativo
   const renderActiveModule = () => {
     switch (activeModule) {
       case 'transferencia-endereco':
-        return <TransferenciaEndereco user={user} />;
+        return (
+          <TransferenciaEndereco 
+            key={resetKey} // Usa a chave para forçar reset quando mudar
+            user={user} 
+            onReset={handleResetTransferencia}
+          />
+        );
       
       // Para outros módulos (em desenvolvimento)
       case 'mudanca-ponto':
