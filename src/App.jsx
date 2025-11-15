@@ -7,6 +7,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import LoginScreen from './components/common/LoginScreen';
 import Layout from './components/layout/Layout';
 import TransferenciaEndereco from './components/agendamentos/transferencia-endereco/TransferenciaEndereco';
+import MudancaPonto from './components/agendamentos/mudanca-ponto/MudancaPonto';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -27,20 +28,33 @@ function App() {
     setResetKey(prev => prev + 1); // Altera a chave para forçar remontagem do componente
   };
 
+  // Função para resetar o formulário de mudança de ponto
+  const handleResetMudancaPonto = () => {
+    setResetKey(prev => prev + 1);
+  };
+
   // Renderizar o módulo ativo
   const renderActiveModule = () => {
     switch (activeModule) {
       case 'transferencia-endereco':
         return (
           <TransferenciaEndereco 
-            key={resetKey} // Usa a chave para forçar reset quando mudar
+            key={`transferencia-${resetKey}`}
             user={user} 
             onReset={handleResetTransferencia}
           />
         );
       
-      // Para outros módulos (em desenvolvimento)
       case 'mudanca-ponto':
+        return (
+          <MudancaPonto 
+            key={`mudanca-${resetKey}`}
+            user={user} 
+            onReset={handleResetMudancaPonto}
+          />
+        );
+      
+      // Para outros módulos (em desenvolvimento)
       case 'instalacao-nova':
       case 'visita-tecnica':
       case 'transferencia-equipamento':
@@ -63,7 +77,7 @@ function App() {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
                   <p className="text-yellow-800 font-medium text-center">
-                    No momento, utilize o módulo <strong>Transferência de Endereço</strong>.
+                    No momento, utilize os módulos disponíveis.
                   </p>
                 </div>
               </div>

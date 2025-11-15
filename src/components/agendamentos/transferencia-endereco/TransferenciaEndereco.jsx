@@ -81,9 +81,10 @@ function TransferenciaEndereco({ user, onReset }) {
 
   return (
     <div className="container mt-4">
+      
       {/* Mantemos o ProgressBar no mesmo estilo */}
       <div className="header">
-        <ProgressBar step={step} />
+        <ProgressBar currentStep={step} totalSteps={6} stepsLabels={['Cliente', 'Novo Endereço', 'Antigo Endereço', 'Valor', 'Agendamento', 'Revisão']} />
       </div>
 
       <div className="card">

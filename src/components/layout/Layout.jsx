@@ -59,9 +59,9 @@ export default function Layout({
           <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-400 opacity-50"></div>
         </header>
 
-        {/* Área de Conteúdo - CORRIGIDA */}
+        {/* Área de Conteúdo*/}
         <main className="flex-1 min-h-0 overflow-auto">
-          {/* Container do conteúdo - AGORA COM ALTURA CORRETA */}
+          {/* Container do conteúdo*/}
           <div className="h-full p-6">
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 h-full w-full p-6">
               {children}
