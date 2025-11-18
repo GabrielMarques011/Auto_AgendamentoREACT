@@ -79,7 +79,7 @@ export default function ScreenQuedas2({ formData, setFormData, nextStep, prevSte
     if (selectedItems.length === 0) return "";
     
     const checklistText = selectedItems.map(item => item.text).join(', ');
-    return `Foi realizado: ${checklistText}.`;
+    return `Processos feitos: ${checklistText}.`;
   };
 
   // Função centralizada para atualizar toda a observação
@@ -441,7 +441,7 @@ export default function ScreenQuedas2({ formData, setFormData, nextStep, prevSte
             <span className="text-sm font-semibold text-gray-700">Exemplo de Observação Completa:</span>
           </div>
           <p className="text-sm text-gray-600 italic">
-            "Foi realizado: Realizada troca dos cabos, Alteração de canal realizada, Equipamentos reiniciados.<br />
+            "Processos feitos: Realizada troca dos cabos, Alteração de canal realizada, Equipamentos reiniciados.<br />
             - Testado via cabo e via WI-FI? Cabo e WI-FI<br />
             - Foi verificado as quedas no diagnóstico do IXC e na OLT? Sim<br />
             - Cliente tem quedas em outros equipamentos? Sim<br />

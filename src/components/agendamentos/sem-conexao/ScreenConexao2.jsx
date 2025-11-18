@@ -26,7 +26,7 @@ export default function ScreenMudanca2({ formData, setFormData, nextStep, prevSt
     if (selectedItems.length === 0) return "";
     
     const checklistText = selectedItems.map(item => item.text).join(', ');
-    return `Foi realizado: ${checklistText}.`;
+    return `Processos feitos: ${checklistText}.`;
   };
 
   // Atualiza a observação quando o checklist muda
@@ -293,7 +293,7 @@ export default function ScreenMudanca2({ formData, setFormData, nextStep, prevSt
             <span className="text-sm font-semibold text-gray-700">Exemplo de Observação Completa:</span>
           </div>
           <p className="text-sm text-gray-600 italic">
-            "Foi realizado: Reset realizado no roteador, configuração de PPPoE no roteador, troca dos dados do PPPoE mas infelizmente não houve sucesso nas tentativas. 
+            "Processos feitos: Reset realizado no roteador, configuração de PPPoE no roteador, troca dos dados do PPPoE mas infelizmente não houve sucesso nas tentativas. 
             Ordem de serviço agendada para identificar se é falha no equipamento ou algo semelhante a isso."
           </p>
         </div>

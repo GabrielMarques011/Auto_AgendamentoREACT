@@ -10,6 +10,11 @@ export default function Header({ user, onLogout, activeModule }) {
       'sem-conexao': 'Sem Conexão',
       'lentidao': 'Lentidão',
       'quedas-conexao': 'Quedas de Conexão',
+      'configuracao-roteador': 'Configuração de Roteador',
+      'alarmada': 'Alarmada',
+      'sinal-fora': 'Sinal Fora do Padrão',
+      'problemas-fonte': 'Problemas na Fonte de Energia',
+      'cabemento-padrao': 'Cabeamento Fora do Padrão',
     };
     return titles[module] || 'Sistema de Agendamentos';
   };
@@ -21,6 +26,11 @@ export default function Header({ user, onLogout, activeModule }) {
       'sem-conexao': 'Agendamento sobre problemas de sem conexão',
       'lentidao': 'Agendamento sobre problemas de lentidão',
       'quedas-conexao': 'Agendamento sobre quedas de conexão',
+      'configuracao-roteador': 'Agendamento para configuração de roteador',
+      'alarmada': 'Agendamento para verificação de alarmas técnicos',
+      'sinal-fora': 'Agendamento para verificação de sinal fora do padrão',
+      'problemas-fonte': 'Agendamento para verificação de problemas na fonte de energia',
+      'cabemento-padrao': 'Agendamento para verificação de cabeamento fora do padrão',
     };
     return descriptions[module] || 'Selecione um módulo para começar';
   };

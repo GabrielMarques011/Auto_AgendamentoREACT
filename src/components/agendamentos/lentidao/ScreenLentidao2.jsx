@@ -74,7 +74,7 @@ export default function ScreenLentidao2({ formData, setFormData, nextStep, prevS
     if (selectedItems.length === 0) return "";
     
     const checklistText = selectedItems.map(item => item.text).join(', ');
-    return `Foi realizado: ${checklistText}.`;
+    return `Processos feitos: ${checklistText}.`;
   };
 
   // Função centralizada para atualizar toda a observação
@@ -416,7 +416,7 @@ export default function ScreenLentidao2({ formData, setFormData, nextStep, prevS
             <span className="text-sm font-semibold text-gray-700">Exemplo de Observação Completa:</span>
           </div>
           <p className="text-sm text-gray-600 italic">
-            "Foi realizado: Alteração de largura de banda e canal realizada, UPnP habilitado.<br />
+            "Processos feitos: Alteração de largura de banda e canal realizada, UPnP habilitado.<br />
             - Testado via cabo e via WI-FI? Cabo e WI-FI<br />
             - Qual foi a média do teste de velocidade? 100Mbps<br />
             - Testado em quantos dispositivos: 4"

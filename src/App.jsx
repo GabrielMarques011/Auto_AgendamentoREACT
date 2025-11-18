@@ -11,6 +11,7 @@ import MudancaPonto from './components/agendamentos/mudanca-ponto/MudancaPonto';
 import SemConexao from './components/agendamentos/sem-conexao/SemConexao';
 import Lentidao from './components/agendamentos/lentidao/Lentidao';
 import QuedaConexao from './components/agendamentos/quedas-conexao/QuedaConexao';
+import ConfiRoteador from './components/agendamentos/configuracao/ConfiRoteador';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -48,6 +49,11 @@ function App() {
 
   // Função para resetar o formulário de quedas de conexão
   const handleResetQuedaConexao = () => {
+    setResetKey(prev => prev + 1);
+  };
+
+  // Função para resetar o formulário de configuração de roteador
+  const handleResetConfig = () => {
     setResetKey(prev => prev + 1);
   };
 
@@ -105,6 +111,15 @@ function App() {
             key={`quedas-${resetKey}`}
             user={user} 
             onReset={handleResetQuedaConexao}
+          />
+        );
+
+      case 'configuracao-roteador':
+        return (
+          <ConfiRoteador
+            key={`configuracao-${resetKey}`}
+            user={user} 
+            onReset={handleResetConfig}
           />
         );
       
