@@ -8,6 +8,9 @@ import LoginScreen from './components/common/LoginScreen';
 import Layout from './components/layout/Layout';
 import TransferenciaEndereco from './components/agendamentos/transferencia-endereco/TransferenciaEndereco';
 import MudancaPonto from './components/agendamentos/mudanca-ponto/MudancaPonto';
+import SemConexao from './components/agendamentos/sem-conexao/SemConexao';
+import Lentidao from './components/agendamentos/lentidao/Lentidao';
+import QuedaConexao from './components/agendamentos/quedas-conexao/QuedaConexao';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -33,6 +36,21 @@ function App() {
     setResetKey(prev => prev + 1);
   };
 
+  // Função para resetar o formulário de sem conexão
+  const handleResetSemConexao = () => {
+    setResetKey(prev => prev + 1);
+  };
+
+  // Função para resetar o formulário de lentidão
+  const handleResetLentidao = () => {
+    setResetKey(prev => prev + 1);
+  };
+
+  // Função para resetar o formulário de quedas de conexão
+  const handleResetQuedaConexao = () => {
+    setResetKey(prev => prev + 1);
+  };
+
   // Renderizar o módulo ativo
   const renderActiveModule = () => {
     switch (activeModule) {
@@ -51,6 +69,42 @@ function App() {
             key={`mudanca-${resetKey}`}
             user={user} 
             onReset={handleResetMudancaPonto}
+          />
+        );
+
+      case 'mudanca-ponto':
+        return (
+          <MudancaPonto 
+            key={`mudanca-${resetKey}`}
+            user={user} 
+            onReset={handleResetMudancaPonto}
+          />
+        );
+
+      case 'sem-conexao':
+        return (
+          <SemConexao
+            key={`semconexao-${resetKey}`}
+            user={user} 
+            onReset={handleResetSemConexao}
+          />
+        );
+
+      case 'lentidao':
+        return (
+          <Lentidao
+            key={`lentidao-${resetKey}`}
+            user={user} 
+            onReset={handleResetLentidao}
+          />
+        );
+
+      case 'quedas-conexao':
+        return (
+          <QuedaConexao
+            key={`quedas-${resetKey}`}
+            user={user} 
+            onReset={handleResetQuedaConexao}
           />
         );
       

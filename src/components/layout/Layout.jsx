@@ -78,8 +78,9 @@ function getModuleTitle(module) {
   const titles = {
     'transferencia-endereco': 'Transferência de Endereço',
     'mudanca-ponto': 'Mudança de Ponto',
-    'visita-tecnica': 'Visita Técnica',
-    'outros': 'Outros Serviços'
+    'sem-conexao': 'Sem Conexão',
+    'lentidao': 'Lentidão',
+    'quedas-conexao': 'Quedas de Conexão',
   };
   return titles[module] || 'Sistema de Agendamentos';
 }
@@ -88,8 +89,9 @@ function getModuleDescription(module) {
   const descriptions = {
     'transferencia-endereco': 'Agendamento para transferência de endereço do cliente',
     'mudanca-ponto': 'Agendamento para mudança de ponto interno',
-    'visita-tecnica': 'Agendamento de visita técnica geral',
-    'outros': 'Outros tipos de agendamento e serviços'
+    'sem-conexao': 'Agendamento sobre problemas de falta de acesso',
+    'lentidao': 'Agendamento sobre problemas de lentidão na rede',
+    'quedas-conexao': 'Agendamento sobre quedas de conexão na rede',
   };
   return descriptions[module] || 'Selecione um módulo para começar';
 }

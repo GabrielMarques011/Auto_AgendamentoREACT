@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { CheckCircle2, User, MapPin, Calendar, DollarSign, AlertCircle, Copy, Check, ArrowLeft, Phone, FileText, Home, Building, MessageSquare } from "lucide-react";
 
-export default function ScreenMudanca6({ formData, prevStep, onReset }) {
+export default function ScreenLentidao5({ formData, prevStep, onReset }) {
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -89,8 +89,6 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
         period: formData.period || "",
         nome_cliente: formData.nome_cliente || "",
         telefone: formData.telefone || "",
-        valueType: formData.valueType || "renovacao",
-        taxValue: formData.taxValue || "",
         melhor_horario_reserva: formData.melhor_horario_reserva || periodToReserveLetter[formData.period] || "Q",
       };
 
@@ -507,39 +505,6 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
           </div>
         </div>
 
-        {/* Valor */}
-        {formData.valueType && (
-          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-blue-600" />
-              </div>
-              <label className="text-sm font-semibold text-gray-800">Valor</label>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-600">Tipo:</span>
-                </div>
-                <p className="text-gray-800 font-medium">
-                  {formData.valueType === "renovacao" ? "Renovação de Contrato" : "Taxa"}
-                </p>
-              </div>
-              {formData.valueType === "taxa" && formData.taxValue && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-600">Valor da Taxa:</span>
-                  </div>
-                  <p className="text-gray-800 font-medium">{formData.taxValue}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Alerta de atenção */}
         <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
           <div className="flex items-start gap-3">
@@ -549,7 +514,7 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
             <div>
               <p className="text-sm font-semibold text-yellow-800 mb-1">Atenção</p>
               <p className="text-sm text-yellow-700">
-                Ao finalizar, será criado um ticket de mudança de ponto. 
+                Ao finalizar, será criado um ticket de sem conexão. 
                 Certifique-se de que todos os dados estão corretos antes de prosseguir.
               </p>
             </div>

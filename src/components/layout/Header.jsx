@@ -7,10 +7,9 @@ export default function Header({ user, onLogout, activeModule }) {
     const titles = {
       'transferencia-endereco': 'Transferência de Endereço',
       'mudanca-ponto': 'Mudança de Ponto',
-      'instalacao-nova': 'Instalação Nova',
-      'visita-tecnica': 'Visita Técnica',
-      'transferencia-equipamento': 'Transferência de Equipamento',
-      'manutencao': 'Manutenção'
+      'sem-conexao': 'Sem Conexão',
+      'lentidao': 'Lentidão',
+      'quedas-conexao': 'Quedas de Conexão',
     };
     return titles[module] || 'Sistema de Agendamentos';
   };
@@ -19,10 +18,9 @@ export default function Header({ user, onLogout, activeModule }) {
     const descriptions = {
       'transferencia-endereco': 'Agendamento para transferência de endereço do cliente',
       'mudanca-ponto': 'Agendamento para mudança de ponto interno',
-      'instalacao-nova': 'Agendamento para novas instalações',
-      'visita-tecnica': 'Agendamento de visita técnica geral',
-      'transferencia-equipamento': 'Transferência de equipamentos entre endereços',
-      'manutencao': 'Agendamento de serviços de manutenção'
+      'sem-conexao': 'Agendamento sobre problemas de sem conexão',
+      'lentidao': 'Agendamento sobre problemas de lentidão',
+      'quedas-conexao': 'Agendamento sobre quedas de conexão',
     };
     return descriptions[module] || 'Selecione um módulo para começar';
   };

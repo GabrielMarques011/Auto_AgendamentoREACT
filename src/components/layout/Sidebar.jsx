@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Home, Users, Settings, Wifi, Building, Calendar, BarChart3, Shield } from 'lucide-react';
+import { MapPin, Home, Users, Settings, Wifi, Building, Calendar, BarChart3, Shield, EthernetPort, Angry, WifiCog, WifiOff } from 'lucide-react';
 
 const menuItems = [
   {
@@ -16,34 +16,27 @@ const menuItems = [
     description: 'Alteração de ponto interno',
     active: true
   },
-  {
-    id: 'visita-tecnica',
-    label: 'Visita Técnica',
-    icon: Users,
-    description: 'Agendamento geral de visita',
-    active: false
+    {
+    id: 'sem-conexao',
+    label: 'Sem Conexão',
+    icon: EthernetPort,
+    description: 'Agendamento sobre problemas de sem conexão',
+    active: true
   },
   {
-    id: 'outros',
-    label: 'Outros Serviços',
-    icon: Settings,
-    description: 'Demais tipos de agendamento',
-    active: false
-  },
-  /* {
-    id: 'agenda',
-    label: 'Agenda Completa',
-    icon: Calendar,
-    description: 'Visualizar todos os agendamentos',
-    active: false
+    id: 'lentidao',
+    label: 'Lentidão',
+    icon: WifiCog,
+    description: 'Agendamento sobre problemas de lentidão',
+    active: true
   },
   {
-    id: 'relatorios',
-    label: 'Relatórios',
-    icon: BarChart3,
-    description: 'Relatórios e métricas do sistema',
-    active: false
-  } */
+    id: 'quedas-conexao',
+    label: 'Quedas de Conexão',
+    icon: WifiOff,
+    description: 'Agendamento sobre quedas de conexão',
+    active: true
+  }
 ];
 
 export default function Sidebar({ activeModule, setActiveModule }) {

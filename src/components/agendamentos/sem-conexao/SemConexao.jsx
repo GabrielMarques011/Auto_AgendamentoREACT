@@ -1,16 +1,15 @@
 // src/components/agendamentos/mudanca-ponto/MudancaPonto.jsx
 import React, { useState } from 'react';
-import ProgressBar from '../../../components/common/ProcessBar';
-import ScreenMudanca1 from './ScreenMudanca1';
-import ScreenMudanca2 from './ScreenMudanca2';
-import ScreenMudanca3 from './ScreenMudanca3';
-import ScreenMudanca4 from './ScreenMudanca4';
-import ScreenMudanca5 from './ScreenMudanca5';
-import ScreenMudanca6 from './ScreenMudanca6';
+import ProgressBar from '../../common/ProcessBar';
+import ScreenConexao1 from './ScreenConexao1';
+import ScreenConexao2 from './ScreenConexao2';
+import ScreenConexao3 from './ScreenConexao3';
+import ScreenConexao4 from './ScreenConexao4';
+import ScreenConexao5 from './ScreenConexao5';
 
 
 
-function MudancaPonto({ user, onReset }) {
+function SemConexao({ user, onReset }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     clientId: '',
@@ -28,8 +27,6 @@ function MudancaPonto({ user, onReset }) {
     numero_atual: '',
     complemento_atual: '',
     cidade_atual: '',
-    valueType: 'renovacao',
-    taxValue: '',
     scheduledDate: '',
     period: 'comercial',
     id_tecnico: user.id_tecnico,
@@ -57,8 +54,6 @@ function MudancaPonto({ user, onReset }) {
       numero_atual: '',
       complemento_atual: '',
       cidade_atual: '',
-      valueType: 'renovacao',
-      taxValue: '',
       scheduledDate: '',
       period: 'comercial',
       id_tecnico: user.id_tecnico,
@@ -73,19 +68,18 @@ function MudancaPonto({ user, onReset }) {
     <div className="container mt-4">
       {/* Mantemos o ProgressBar no mesmo estilo */}
       <div className="header">
-        <ProgressBar currentStep={step} totalSteps={6} stepsLabels={['Cliente', 'Observação', 'Confirmar Endereço','Valor', 'Agendamento','Revisão']} />
+        <ProgressBar currentStep={step} totalSteps={5} stepsLabels={['Cliente', 'Observação', 'Confirmar Endereço', 'Agendamento','Revisão']} />
       </div>
 
       <div className="card">
-        {step === 1 && <ScreenMudanca1 formData={formData} setFormData={setFormData} nextStep={nextStep} />}
-        {step === 2 && <ScreenMudanca2 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep}/>}
-        {step === 3 && <ScreenMudanca3 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 4 && <ScreenMudanca4 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 5 && <ScreenMudanca5 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 6 && <ScreenMudanca6 formData={formData} prevStep={prevStep} onReset={resetForm} />}
+        {step === 1 && <ScreenConexao1 formData={formData} setFormData={setFormData} nextStep={nextStep} />}
+        {step === 2 && <ScreenConexao2 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep}/>}
+        {step === 3 && <ScreenConexao3 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
+        {step === 4 && <ScreenConexao4 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
+        {step === 5 && <ScreenConexao5 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
       </div>
     </div>
   );
 }
 
-export default MudancaPonto;
+export default SemConexao;
