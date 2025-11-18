@@ -67,8 +67,8 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
     const userId = storedUser.id_tecnico || "147";
 
     try {
-      // Payload específico para mudança de ponto
-      const mudancaPontoPayload = {
+      // Payload específico para sem conexão
+      const semConexaoPayload = {
         id_responsavel_tecnico: userId,
         clientId: formData.clientId,
         contractId: formData.contractId,
@@ -79,48 +79,44 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
         numero_atual: formData.numero_atual || "",
         complemento_atual: formData.complemento_atual || "",
         cidade_atual: formData.cidade_atual || "",
-        // Dados da mudança
-        tipo_mudanca: formData.tipo_mudanca || "",
+        // Dados do sem conexão
         ponto_atual: formData.ponto_atual || "",
-        ponto_novo: formData.ponto_novo || "",
         observacoes: formData.observacao || "", // AQUI: Vinculando a observação
         // Dados do agendamento
         scheduledDate: formatScheduledDate(),
         period: formData.period || "",
         nome_cliente: formData.nome_cliente || "",
-        telefone: formData.telefone || "",
+        telefone: formData.telefone_celular || "",
         melhor_horario_reserva: formData.melhor_horario_reserva || periodToReserveLetter[formData.period] || "Q",
       };
 
-      console.log("Enviando /api/mudanca-ponto payload:", mudancaPontoPayload);
+      console.log("Enviando /api/semconexao payload:", semConexaoPayload);
 
-      // TODO: Substituir pela rota correta da API de mudança de ponto
-      const resMudanca = await fetch("http://10.0.30.251:5000/api/mudanca-ponto", {
+      // TODO: Substituir pela rota correta da API de sem conexão
+      const resSemConexao = await fetch("http://10.0.30.251:5000/api/semconexao", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mudancaPontoPayload)
+        body: JSON.stringify(semConexaoPayload)
       });
 
-      const jsonMudanca = await resMudanca.json().catch(() => ({ error: "Resposta inválida do servidor" }));
+      const jsonSemConexao = await resSemConexao.json().catch(() => ({ error: "Resposta inválida do servidor" }));
 
-      if (!resMudanca.ok) {
-        const errMsg = jsonMudanca.error || JSON.stringify(jsonMudanca);
-        throw new Error(`Falha na mudança de ponto: ${errMsg}`);
+      if (!resSemConexao.ok) {
+        const errMsg = jsonSemConexao.error || JSON.stringify(jsonSemConexao);
+        throw new Error(`Falha na sem conexao: ${errMsg}`);
       }
 
-      console.log("Mudança de ponto criada:", jsonMudanca);
+      console.log("Sem Conexão criada:", jsonSemConexao);
 
-      // TODO: Atualizar contrato se necessário para mudança de ponto
+      // TODO: Atualizar contrato se necessário para sem conexão
       const updatePayload = {
         contractId: formData.contractId,
         id_contrato: formData.contractId,
         clientId: formData.clientId,
-        // Incluir campos específicos da mudança de ponto se necessário
-        tipo_mudanca: formData.tipo_mudanca || "",
-        ponto_novo: formData.ponto_novo || "",
+        // Incluir campos específicos da sem conexão se necessário
         observacoes: formData.observacao || "", // AQUI: Vinculando a observação
         motivo_cancelamento: " ",
-        melhor_horario_reserva: mudancaPontoPayload.melhor_horario_reserva,
+        melhor_horario_reserva: semConexaoPayload.melhor_horario_reserva,
       };
 
       console.log("Enviando /api/update_contrato payload:", updatePayload);
@@ -140,17 +136,15 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
       console.log("Contrato atualizado:", jsonUpdate);
 
       setSuccessData({
-        protocolo: jsonMudanca.protocolo_os || jsonMudanca.id_ticket,
+        protocolo: jsonSemConexao.protocolo_os || jsonSemConexao.id_ticket,
         endereco: `${formData.endereco_atual}, ${formData.numero_atual} - ${formData.bairro_atual}`,
         complemento: formatComplemento(formData),
         dataPeriodo: `${formatDateForDisplay(formData.scheduledDate)} - ${formatPeriodForDisplay(formData.period)}`,
-        tipo_mudanca: formData.tipo_mudanca || "Não especificado",
-        ponto_novo: formData.ponto_novo || "Não especificado",
         observacao: formData.observacao || "Nenhuma observação informada" // AQUI: Incluindo no successData
       });
 
     } catch (err) {
-      console.error("Erro ao finalizar mudança de ponto:", err);
+      console.error("Erro ao finalizar sem conexão:", err);
       alert("Erro ao finalizar: " + (err.message || String(err)));
     } finally {
       setLoading(false);
@@ -163,10 +157,7 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
 *Protocolo Nº:* ${successData.protocolo}
 *Endereço Atual:* ${successData.endereco}
 *Complemento:* ${successData.complemento}
-*Tipo de Mudança:* ${successData.tipo_mudanca}
-*Novo Ponto:* ${successData.ponto_novo}
-*Data/Período:* ${successData.dataPeriodo}
-*Observações:* ${successData.observacao}`; // AQUI: Incluindo observação no texto copiável
+*Data/Período:* ${successData.dataPeriodo}`;
 
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -205,8 +196,8 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
       <div className="h-full flex flex-col">
         {/* Header da Tela */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Mudança de Ponto Concluída!</h2>
-          <p className="text-gray-600 text-lg">Sua mudança de ponto foi agendada com sucesso</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Sem Conexão Concluída!</h2>
+          <p className="text-gray-600 text-lg">Sua sem conexão foi agendada com sucesso</p>
         </div>
 
         <div className="space-y-6 flex-1">
@@ -216,7 +207,7 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
               <div className="p-2 bg-green-100 rounded-lg">
                 <CheckCircle2 className="w-7 h-7 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold text-green-800">Mudança de Ponto Confirmada</h3>
+              <h3 className="text-xl font-semibold text-green-800">Sem Conexão Confirmada</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -247,26 +238,6 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
                 </div>
                 <p className="text-gray-800 font-medium">
                   {successData.complemento}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-green-100">
-                <div className="flex items-center gap-2 mb-3">
-                  <Building className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-semibold text-green-700">Tipo de Mudança</span>
-                </div>
-                <p className="text-gray-800 font-medium">
-                  {successData.tipo_mudanca}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-green-100">
-                <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-semibold text-blue-700">Novo Ponto</span>
-                </div>
-                <p className="text-gray-800 font-medium">
-                  {successData.ponto_novo}
                 </p>
               </div>
 
@@ -319,10 +290,7 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
 *Protocolo Nº:* ${successData.protocolo}
 *Endereço Atual:* ${successData.endereco}
 *Complemento:* ${successData.complemento}
-*Tipo de Mudança:* ${successData.tipo_mudanca}
-*Novo Ponto:* ${successData.ponto_novo}
-*Data/Período:* ${successData.dataPeriodo}
-*Observações:* ${successData.observacao}`}
+*Data/Período:* ${successData.dataPeriodo}`}
                 </pre>
               </div>
 
@@ -342,7 +310,7 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
               className="px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
             >
               <CheckCircle2 className="w-5 h-5" />
-              Nova Mudança de Ponto
+              Nova Abertura de Sem Conexão
             </button>
           </div>
         </div>
@@ -355,8 +323,8 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
     <div className="h-full flex flex-col">
       {/* Header da Tela */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">Revisão da Mudança de Ponto</h2>
-        <p className="text-gray-600 text-lg">Revise os dados antes de finalizar a mudança de ponto</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">Revisão de Sem Conexão</h2>
+        <p className="text-gray-600 text-lg">Revise os dados antes de finalizar o sem conexão</p>
       </div>
 
       <div className="space-y-6 flex-1">
@@ -531,7 +499,7 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
             <ArrowLeft className="w-5 h-5" />
             Voltar
           </button>
-          {/* <button
+          <button
             onClick={handleFinalize}
             disabled={loading}
             className="px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-xl hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2"
@@ -547,7 +515,7 @@ export default function ScreenConexao5({ formData, prevStep, onReset }) {
                 Finalizar Agendamento
               </>
             )}
-          </button> */}
+          </button>
         </div>
       </div>
     </div>

@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import ProgressBar from '../../common/ProcessBar';
 import ScreenRoteador1 from './ScreenRoteador1';
 import ScreenRoteador2 from './ScreenRoteador2';
+import ScreenRoteador3 from './ScreenRoteador3';
+import ScreenRoteador4 from './ScreenRoteador4';
+import ScreenRoteador5 from './ScreenRoteador5';
 
 function ConfiRoteador({ user, onReset }) {
   const [step, setStep] = useState(1);
@@ -71,7 +74,7 @@ function ConfiRoteador({ user, onReset }) {
         {step === 2 && <ScreenRoteador2 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep}/>}
         {step === 3 && <ScreenRoteador3 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
         {step === 4 && <ScreenRoteador4 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 5 && <ScreenRoteador5 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
+        {step === 5 && <ScreenRoteador5 formData={formData} prevStep={prevStep} onReset={resetForm} />}
       </div>
     </div>
   );

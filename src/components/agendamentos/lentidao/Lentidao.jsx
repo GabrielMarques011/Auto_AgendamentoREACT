@@ -74,7 +74,7 @@ function Lentidao({ user, onReset }) {
         {step === 2 && <ScreenLentidao2 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep}/>}
         {step === 3 && <ScreenLentidao3 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
         {step === 4 && <ScreenLentidao4 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 5 && <ScreenLentidao5 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
+        {step === 5 && <ScreenLentidao5 formData={formData} prevStep={prevStep} onReset={resetForm} />}
       </div>
     </div>
   );

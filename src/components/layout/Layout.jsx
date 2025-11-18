@@ -85,6 +85,7 @@ function getModuleTitle(module) {
     'problemas-fonte': 'Problemas na Fonte de Energia',
     'alarmada': 'Alarmada',
     'sinal-fora': 'Sinal Fora do Padrão',
+    'troca-equipamento': 'Troca de Equipamento',
   };
   return titles[module] || 'Sistema de Agendamentos';
 }
@@ -100,6 +101,7 @@ function getModuleDescription(module) {
     'problemas-fonte': 'Agendamento para verificação de problemas na fonte de energia',
     'alarmada': 'Agendamento para verificação de alarmes técnicos',
     'sinal-fora': 'Agendamento para verificação de sinal fora do padrão',
+    'troca-equipamento': 'Agendamento de troca de equipamento',
   };
   return descriptions[module] || 'Selecione um módulo para começar';
 }

@@ -7,8 +7,6 @@ import ScreenConexao3 from './ScreenConexao3';
 import ScreenConexao4 from './ScreenConexao4';
 import ScreenConexao5 from './ScreenConexao5';
 
-
-
 function SemConexao({ user, onReset }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -76,7 +74,7 @@ function SemConexao({ user, onReset }) {
         {step === 2 && <ScreenConexao2 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep}/>}
         {step === 3 && <ScreenConexao3 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
         {step === 4 && <ScreenConexao4 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 5 && <ScreenConexao5 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
+        {step === 5 && <ScreenConexao5 formData={formData} prevStep={prevStep} onReset={resetForm} />}
       </div>
     </div>
   );

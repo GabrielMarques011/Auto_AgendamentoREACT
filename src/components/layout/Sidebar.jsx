@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Home, Users, Settings, Wifi, Building, Calendar, BarChart3, Shield, EthernetPort, Angry, WifiCog, WifiOff, ChevronDown, ChevronRight, AudioWaveform, UserRoundCog, Cable, Plug, RouteOff, ChartNoAxesCombined } from 'lucide-react';
+import { MapPin, Home, Users, Settings, Wifi, Building, Calendar, BarChart3, Shield, EthernetPort, Angry, WifiCog, WifiOff, ChevronDown, ChevronRight, AudioWaveform, UserRoundCog, Cable, Plug, RouteOff, ChartNoAxesCombined, Router } from 'lucide-react';
 
 const menuCategories = [
   {
@@ -63,6 +63,13 @@ const menuCategories = [
     label: 'BDs Físicos',
     icon: AudioWaveform,
     items: [
+      {
+        id: 'troca-equipamento',
+        label: 'Troca de Equipamento',
+        icon: Router,
+        description: 'Agendamento de troca de equipamento',
+        active: false
+      },
       {
         id: 'alarmada',
         label: 'Alarmada',

@@ -74,7 +74,7 @@ function QuedaConexao({ user, onReset }) {
         {step === 2 && <ScreenQuedas2 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep}/>}
         {step === 3 && <ScreenQuedas3 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
         {step === 4 && <ScreenQuedas4 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
-        {step === 5 && <ScreenQuedas5 formData={formData} setFormData={setFormData} nextStep={nextStep} prevStep={prevStep} />}
+        {step === 5 && <ScreenQuedas5 formData={formData} prevStep={prevStep} onReset={resetForm}  />}
       </div>
     </div>
   );

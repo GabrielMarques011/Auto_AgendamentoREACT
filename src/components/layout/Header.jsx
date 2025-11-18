@@ -15,6 +15,7 @@ export default function Header({ user, onLogout, activeModule }) {
       'sinal-fora': 'Sinal Fora do Padrão',
       'problemas-fonte': 'Problemas na Fonte de Energia',
       'cabemento-padrao': 'Cabeamento Fora do Padrão',
+      'troca-equipamento': 'Troca de Equipamento'
     };
     return titles[module] || 'Sistema de Agendamentos';
   };
@@ -31,6 +32,7 @@ export default function Header({ user, onLogout, activeModule }) {
       'sinal-fora': 'Agendamento para verificação de sinal fora do padrão',
       'problemas-fonte': 'Agendamento para verificação de problemas na fonte de energia',
       'cabemento-padrao': 'Agendamento para verificação de cabeamento fora do padrão',
+      'troca-equipamento': 'Agendamento de troca de equipamento'
     };
     return descriptions[module] || 'Selecione um módulo para começar';
   };

@@ -88,7 +88,7 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
         scheduledDate: formatScheduledDate(),
         period: formData.period || "",
         nome_cliente: formData.nome_cliente || "",
-        telefone: formData.telefone || "",
+        telefone: formData.telefone_celular || "",
         valueType: formData.valueType || "renovacao",
         taxValue: formData.taxValue || "",
         melhor_horario_reserva: formData.melhor_horario_reserva || periodToReserveLetter[formData.period] || "Q",
@@ -97,7 +97,7 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
       console.log("Enviando /api/mudanca-ponto payload:", mudancaPontoPayload);
 
       // TODO: Substituir pela rota correta da API de mudança de ponto
-      const resMudanca = await fetch("http://10.0.30.251:5000/api/mudanca-ponto", {
+      const resMudanca = await fetch("http://10.0.30.251:5000/api/mudanca", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(mudancaPontoPayload)
@@ -165,10 +165,8 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
 *Protocolo Nº:* ${successData.protocolo}
 *Endereço Atual:* ${successData.endereco}
 *Complemento:* ${successData.complemento}
-*Tipo de Mudança:* ${successData.tipo_mudanca}
-*Novo Ponto:* ${successData.ponto_novo}
 *Data/Período:* ${successData.dataPeriodo}
-*Observações:* ${successData.observacao}`; // AQUI: Incluindo observação no texto copiável
+*Observações:* ${successData.observacao}`;
 
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -254,26 +252,6 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
 
               <div className="bg-white rounded-xl p-4 border border-green-100">
                 <div className="flex items-center gap-2 mb-3">
-                  <Building className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-semibold text-green-700">Tipo de Mudança</span>
-                </div>
-                <p className="text-gray-800 font-medium">
-                  {successData.tipo_mudanca}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-green-100">
-                <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-semibold text-blue-700">Novo Ponto</span>
-                </div>
-                <p className="text-gray-800 font-medium">
-                  {successData.ponto_novo}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-green-100">
-                <div className="flex items-center gap-2 mb-3">
                   <Calendar className="w-5 h-5 text-green-600" />
                   <span className="text-sm font-semibold text-green-700">Data/Período</span>
                 </div>
@@ -321,8 +299,6 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
 *Protocolo Nº:* ${successData.protocolo}
 *Endereço Atual:* ${successData.endereco}
 *Complemento:* ${successData.complemento}
-*Tipo de Mudança:* ${successData.tipo_mudanca}
-*Novo Ponto:* ${successData.ponto_novo}
 *Data/Período:* ${successData.dataPeriodo}
 *Observações:* ${successData.observacao}`}
                 </pre>
@@ -566,7 +542,7 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
             <ArrowLeft className="w-5 h-5" />
             Voltar
           </button>
-          {/* <button
+          <button
             onClick={handleFinalize}
             disabled={loading}
             className="px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-xl hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2"
@@ -582,7 +558,7 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
                 Finalizar Agendamento
               </>
             )}
-          </button> */}
+          </button>
         </div>
       </div>
     </div>
