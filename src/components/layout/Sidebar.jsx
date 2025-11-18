@@ -1,45 +1,114 @@
-import React from 'react';
-import { MapPin, Home, Users, Settings, Wifi, Building, Calendar, BarChart3, Shield, EthernetPort, Angry, WifiCog, WifiOff } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, Home, Users, Settings, Wifi, Building, Calendar, BarChart3, Shield, EthernetPort, Angry, WifiCog, WifiOff, ChevronDown, ChevronRight, AudioWaveform, UserRoundCog, Cable, Plug, RouteOff, ChartNoAxesCombined } from 'lucide-react';
 
-const menuItems = [
+const menuCategories = [
   {
-    id: 'transferencia-endereco',
-    label: 'Transferência de Endereço',
+    id: 'mudanca-endereco-ponto',
+    label: 'Mudança de Endereço/Ponto',
     icon: MapPin,
-    description: 'Agendamento para mudança de endereço',
-    active: true
+    items: [
+      {
+        id: 'transferencia-endereco',
+        label: 'Transferência de Endereço',
+        icon: MapPin,
+        description: 'Agendamento para mudança de endereço',
+        active: true
+      },
+      {
+        id: 'mudanca-ponto',
+        label: 'Mudança de Ponto',
+        icon: Home,
+        description: 'Alteração de ponto interno',
+        active: true
+      }
+    ]
   },
   {
-    id: 'mudanca-ponto',
-    label: 'Mudança de Ponto',
-    icon: Home,
-    description: 'Alteração de ponto interno',
-    active: true
-  },
-    {
-    id: 'sem-conexao',
-    label: 'Sem Conexão',
-    icon: EthernetPort,
-    description: 'Agendamento sobre problemas de sem conexão',
-    active: true
+    id: 'bds-logicos',
+    label: 'BDs Lógicos',
+    icon: UserRoundCog,
+    items: [
+      {
+        id: 'sem-conexao',
+        label: 'Sem Conexão',
+        icon: EthernetPort,
+        description: 'Agendamento sobre problemas de sem conexão',
+        active: true
+      },
+      {
+        id: 'lentidao',
+        label: 'Lentidão',
+        icon: WifiCog,
+        description: 'Agendamento sobre problemas de lentidão',
+        active: true
+      },
+      {
+        id: 'quedas-conexao',
+        label: 'Quedas de Conexão',
+        icon: WifiOff,
+        description: 'Agendamento sobre quedas de conexão',
+        active: true
+      },
+      {
+        id: 'configuracao-roteador',
+        label: 'Configuração de Roteador',
+        icon: Settings,
+        description: 'Configurações avançadas do roteador',
+        active: true
+      }
+    ]
   },
   {
-    id: 'lentidao',
-    label: 'Lentidão',
-    icon: WifiCog,
-    description: 'Agendamento sobre problemas de lentidão',
-    active: true
-  },
-  {
-    id: 'quedas-conexao',
-    label: 'Quedas de Conexão',
-    icon: WifiOff,
-    description: 'Agendamento sobre quedas de conexão',
-    active: true
+    id: 'bds-fisicos',
+    label: 'BDs Físicos',
+    icon: AudioWaveform,
+    items: [
+      {
+        id: 'alarmada',
+        label: 'Alarmada',
+        icon: RouteOff,
+        description: 'Problemas com alarme na rede',
+        active: false
+      },
+      {
+        id: 'sinal-fora',
+        label: 'Sinal Fora do Padrão',
+        icon: ChartNoAxesCombined,
+        description: 'Problemas com sinal fora do padrão',
+        active: false
+      },
+      {
+        id: 'problemas-fonte',
+        label: 'Problemas Fonte',
+        icon: Plug,
+        description: 'Problemas relacionados à fonte de energia',
+        active: false
+      },
+      {
+        id: 'cabeamento-padrao',
+        label: 'Cabeamento Incorreto',
+        icon: Cable,
+        description: 'Problemas relacionados à cabeamento fora do padrão',
+        active: false
+      }
+    ]
   }
 ];
 
 export default function Sidebar({ activeModule, setActiveModule }) {
+  const [expandedCategories, setExpandedCategories] = useState({
+    'mudanca-endereco-ponto': true,
+    'bds-logicos': true,
+    'bds-fisicos': true
+  });
+
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
   return (
     <div className="w-[20%] bg-gradient-to-b from-gray-800 to-gray-900 shadow-2xl border-r border-blue-700/30 flex flex-col">
       {/* Header do Sidebar */}
@@ -62,82 +131,122 @@ export default function Sidebar({ activeModule, setActiveModule }) {
 
       {/* Menu de Navegação */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeModule === item.id;
+        {menuCategories.map((category) => {
+          const CategoryIcon = category.icon;
+          const isExpanded = expandedCategories[category.id];
           
           return (
-            <button
-              key={item.id}
-              onClick={() => item.active && setActiveModule(item.id)}
-              disabled={!item.active}
-              className={`w-full text-left p-4 rounded-xl transition-all duration-200 group ${
-                isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/25 border border-blue-500/30'
-                  : item.active
-                  ? 'bg-gray-700/50 hover:bg-gray-700/80 border border-transparent hover:border-blue-500/20'
-                  : 'bg-gray-800/30 opacity-60 cursor-not-allowed'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg transition-colors ${
-                  isActive 
-                    ? 'bg-white/20' 
-                    : item.active
-                    ? 'bg-gray-600/50 group-hover:bg-blue-500/20'
-                    : 'bg-gray-700/30'
-                }`}>
-                  <Icon className={`w-5 h-5 ${
-                    isActive 
-                      ? 'text-white' 
-                      : item.active
-                      ? 'text-gray-300 group-hover:text-white'
-                      : 'text-gray-500'
-                  }`} />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className={`font-semibold transition-colors text-left ${
-                    isActive 
-                      ? 'text-white' 
-                      : item.active
-                      ? 'text-gray-200 group-hover:text-white'
-                      : 'text-gray-500'
-                  }`}>
-                    {item.label}
+            <div key={category.id} className="space-y-1">
+              {/* Cabeçalho da Categoria */}
+              <button
+                onClick={() => toggleCategory(category.id)}
+                className="w-full text-left p-3 rounded-lg transition-all duration-200 group bg-gray-700/30 hover:bg-gray-700/50 border border-gray-600/30 hover:border-blue-500/20"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gray-600/50 group-hover:bg-blue-500/20 transition-colors">
+                    <CategoryIcon className="w-4 h-4 text-gray-300 group-hover:text-white" />
                   </div>
-                  <div className={`text-sm transition-colors text-left ${
-                    isActive 
-                      ? 'text-blue-100' 
-                      : item.active
-                      ? 'text-gray-400 group-hover:text-blue-200'
-                      : 'text-gray-500'
-                  }`}>
-                    {item.description}
-                  </div>
-                </div>
-
-                {/* Indicadores */}
-                <div className="flex items-center gap-2">
-                  {isActive && (
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  )}
                   
-                  {!item.active && (
-                    <span className="text-xs bg-gray-700 text-gray-400 px-2 py-1 rounded border border-gray-600">
-                      Em breve
-                    </span>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-gray-200 group-hover:text-white text-left text-sm">
+                      {category.label}
+                    </div>
+                  </div>
+
+                  <div className="text-gray-400 group-hover:text-white transition-colors">
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+
+              {/* Itens da Categoria */}
+              {isExpanded && (
+                <div className="ml-4 space-y-1 border-l-2 border-gray-600/30 pl-2">
+                  {category.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeModule === item.id;
+                    
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => item.active && setActiveModule(item.id)}
+                        disabled={!item.active}
+                        className={`w-full text-left p-3 rounded-xl transition-all duration-200 group ${
+                          isActive
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/25 border border-blue-500/30'
+                            : item.active
+                            ? 'bg-gray-700/30 hover:bg-gray-700/50 border border-transparent hover:border-blue-500/20'
+                            : 'bg-gray-800/30 opacity-60 cursor-not-allowed'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg transition-colors ${
+                            isActive 
+                              ? 'bg-white/20' 
+                              : item.active
+                              ? 'bg-gray-600/30 group-hover:bg-blue-500/20'
+                              : 'bg-gray-700/30'
+                          }`}>
+                            <Icon className={`w-4 h-4 ${
+                              isActive 
+                                ? 'text-white' 
+                                : item.active
+                                ? 'text-gray-300 group-hover:text-white'
+                                : 'text-gray-500'
+                            }`} />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className={`font-medium transition-colors text-left text-sm ${
+                              isActive 
+                                ? 'text-white' 
+                                : item.active
+                                ? 'text-gray-200 group-hover:text-white'
+                                : 'text-gray-500'
+                            }`}>
+                              {item.label}
+                            </div>
+                            <div className={`text-xs transition-colors text-left ${
+                              isActive 
+                                ? 'text-blue-100' 
+                                : item.active
+                                ? 'text-gray-400 group-hover:text-blue-200'
+                                : 'text-gray-500'
+                            }`}>
+                              {item.description}
+                            </div>
+                          </div>
+
+                          {/* Indicadores */}
+                          <div className="flex items-center gap-2">
+                            {isActive && (
+                              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                            )}
+                            
+                            {!item.active && (
+                              <span className="text-xs bg-gray-700 text-gray-400 px-2 py-1 rounded border border-gray-600">
+                                Em breve
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
 
       {/* Footer do Sidebar */}
-      {/* <div className="p-4 border-t border-blue-700/30"> */}
-        {/* <div className="bg-gray-700/30 rounded-lg p-3 border border-gray-600/30">
+      {/* <div className="p-4 border-t border-blue-700/30">
+        <div className="bg-gray-700/30 rounded-lg p-3 border border-gray-600/30">
           <div className="text-xs text-gray-300 text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
               <Shield className="w-3 h-3 text-green-400" />
@@ -148,15 +257,14 @@ export default function Sidebar({ activeModule, setActiveModule }) {
               Todos os sistemas operacionais
             </div>
           </div>
-        </div> */}
+        </div>
 
-        {/* Versão e Status */}
-        {/* <div className="mt-3 text-center">
+        <div className="mt-3 text-center">
           <div className="text-xs text-gray-400">
             v2.0 • {new Date().getFullYear()}
           </div>
-        </div> */}
-      {/* </div> */}
+        </div>
+      </div> */}
     </div>
   );
 }
