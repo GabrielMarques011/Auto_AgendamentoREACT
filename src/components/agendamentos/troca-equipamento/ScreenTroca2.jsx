@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FileText, AlertCircle, Edit3, CheckSquare, Square, ArrowLeft } from "lucide-react";
 
-export default function ScreenRoteador2({ formData, setFormData, nextStep, prevStep }) {
+export default function ScreenTroca2({ formData, setFormData, nextStep, prevStep }) {
   // DEBUG: Verificar se as props estão chegando
   useEffect(() => {
-    console.log("🔍 ScreenRoteador2 - Props recebidas:", {
+    console.log("🔍 ScreenTroca2 - Props recebidas:", {
       hasPrevStep: typeof prevStep === 'function',
       hasNextStep: typeof nextStep === 'function',
       hasFormData: !!formData,
@@ -13,15 +13,15 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
   }, []);
 
   const [checklistItems, setChecklistItems] = useState([
-    { id: 1, label: "Trocado os cabeamentos", checked: false, text: "Realizada troca dos cabos / inversão" },
-    { id: 2, label: "Reset no roteador", checked: false, text: "Realizado reset de fábrica no roteador" },
-    { id: 3, label: "Atualização de PPPoE", checked: false, text: "Atualização de PPPoE realizada" },
-    { id: 4, label: "Deletado / Autorizado na OLT", checked: false, text: "Deletado / Autorizado na OLT o equipamento" },
+    { id: 1, label: "Equipamento não compativel com o plano", checked: false, text: "Equipamento não compativel com o plano" },
+    { id: 2, label: "Problemas com desautenticação", checked: false, text: "Problemas com desautenticação" },
+    { id: 3, label: "Aquisição de Linha Telefônica", checked: false, text: "Aquisição de Linha Telefônica" },
+    { id: 4, label: "Houve uma queda no equipamento", checked: false, text: "Houve uma queda no equipamento" },
+    { id: 5, label: "Antena do equipamento quebrada", checked: false, text: "Antena do equipamento quebrada" },
   ]);
 
   // Estado para os novos campos de validação
   const [validacoes, setValidacoes] = useState({
-    verificadoInstrucaoCliente: formData.verificadoInstrucaoCliente || "",
     velocidadeMedia: formData.velocidadeMedia || "",
     testadoViaCabo: formData.testadoViaCabo || false,
     testadoViaWifi: formData.testadoViaWifi || false,
@@ -52,11 +52,6 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
       }
       parts.push(`- Testado via cabo e via WI-FI? ${viaText}`);
     }
-
-    // Instruído a acessar a interface
-    if (validacoes.verificadoInstrucaoCliente) {
-      parts.push(`- Foi instruido o cliente a acessar a interface? ${validacoes.verificadoInstrucaoCliente}`);
-    }
     
     // Velocidade média - SEGUNDO
     if (validacoes.velocidadeMedia) {
@@ -77,7 +72,7 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
     if (selectedItems.length === 0) return "";
     
     const checklistText = selectedItems.map(item => item.text).join(', ');
-    return `Processos feitos: ${checklistText}.`;
+    return `${checklistText}.`;
   };
 
   // Função centralizada para atualizar toda a observação
@@ -197,9 +192,9 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
       <div className="mb-8">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Observações da Configuração do Roteador</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Observações da Troca de Equipamento</h2>
             <p className="text-gray-600 text-lg">
-              Descreva os detalhes e necessidades específicas para esta configuração do roteador
+              Descreva os detalhes e necessidades específicas para esta troca de equipamento
             </p>
           </div>
         </div>
@@ -256,82 +251,6 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
                 </span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Validações de Teste */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <label className="text-lg font-semibold text-gray-800 block">
-                Validações de Teste
-              </label>
-              <p className="text-sm text-gray-600">
-                Informe os resultados dos testes realizados (será adicionado automaticamente às observações)
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Verificado quedas IXC e OLT */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Foi instruido o cliente a acessar a interface?
-              </label>
-              <select
-                value={validacoes.verificadoInstrucaoCliente}
-                onChange={(e) => handleValidacaoChange('verificadoInstrucaoCliente', e.target.value)}
-                className="w-full bg-white text-gray-800 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200"
-              >
-                <option value="">Selecione</option>
-                <option value="Sim">Sim</option>
-                <option value="Não">Não</option>
-              </select>
-            </div>
-
-            {/* Quantos Equipamentos */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Testado em quantos equipamentos?
-              </label>
-              <input
-                type="text"
-                value={validacoes.quantosEquipamentos}
-                onChange={(e) => handleValidacaoChange('quantosEquipamentos', e.target.value)}
-                placeholder="Ex: 3"
-                className="w-full bg-white text-gray-800 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200"
-              />
-            </div>
-
-            {/* Checkboxes para Cabo e Wi-Fi */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Testado via:
-              </label>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={validacoes.testadoViaCabo}
-                    onChange={(e) => handleValidacaoChange('testadoViaCabo', e.target.checked)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Cabo de rede</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={validacoes.testadoViaWifi}
-                    onChange={(e) => handleValidacaoChange('testadoViaWifi', e.target.checked)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">WI-FI</span>
-                </label>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -405,7 +324,6 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
                   <ul className="text-sm text-blue-600 space-y-1">
                     <li>• Use o checklist acima para ações comuns</li>
                     <li>• Motivo da abertura do chamado</li>
-                    <li>• Relatar processos que realizou</li>
                     <li>• <strong>Mínimo 10 caracteres</strong></li>
                   </ul>
                 </div>
@@ -421,9 +339,7 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
             <span className="text-sm font-semibold text-gray-700">Exemplo de Observação Completa:</span>
           </div>
           <p className="text-sm text-gray-600 italic">
-            "Processos feitos: Restado roteador, trocado o PPPoE mais sem sucesso.<br />
-            - Foi instruido o cliente a acessar a interface? Sim<br />
-            - Testado em quantos dispositivos: 2"
+            "Motivo da Abertura: Cliente adquiriu uma linha telefonica, necessario troca do equipamento."
           </p>
         </div>
 

@@ -68,14 +68,14 @@ const menuCategories = [
         label: 'Troca de Equipamento',
         icon: Router,
         description: 'Agendamento de troca de equipamento',
-        active: false
+        active: true
       },
       {
         id: 'alarmada',
         label: 'Alarmada',
         icon: RouteOff,
         description: 'Problemas com alarme na rede',
-        active: false
+        active: true
       },
       {
         id: 'sinal-fora',

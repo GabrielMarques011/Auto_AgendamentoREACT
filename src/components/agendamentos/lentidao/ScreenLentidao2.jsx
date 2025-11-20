@@ -142,7 +142,7 @@ export default function ScreenLentidao2({ formData, setFormData, nextStep, prevS
   };
 
   const getCaracteresRestantes = () => {
-    return 500 - (formData.observacao?.length || 0);
+    return 2000 - (formData.observacao?.length || 0);
   };
 
   const getDicaObservacao = () => {
@@ -194,9 +194,9 @@ export default function ScreenLentidao2({ formData, setFormData, nextStep, prevS
       <div className="mb-8">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Observações da Mudança</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Observações da Lentidão</h2>
             <p className="text-gray-600 text-lg">
-              Descreva os detalhes e necessidades específicas para esta mudança de ponto
+              Descreva os detalhes e necessidades específicas para esta lentidão
             </p>
           </div>
         </div>
@@ -359,7 +359,7 @@ export default function ScreenLentidao2({ formData, setFormData, nextStep, prevS
                     : "border-orange-500 focus:border-orange-500"
                   : "border-gray-300 focus:border-blue-500"
               }`}
-              maxLength={500}
+              maxLength={2000}
               required
             />
             

@@ -12,6 +12,7 @@ import SemConexao from './components/agendamentos/sem-conexao/SemConexao';
 import Lentidao from './components/agendamentos/lentidao/Lentidao';
 import QuedaConexao from './components/agendamentos/quedas-conexao/QuedaConexao';
 import ConfiRoteador from './components/agendamentos/configuracao/ConfiRoteador';
+import TrocaEquipamento from './components/agendamentos/troca-equipamento/TrocaEquipamento';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -54,6 +55,11 @@ function App() {
 
   // Função para resetar o formulário de configuração de roteador
   const handleResetConfig = () => {
+    setResetKey(prev => prev + 1);
+  };
+
+  // Função para resetar o formulário de troca de equipamento
+  const handleResetTroca = () => {
     setResetKey(prev => prev + 1);
   };
 
@@ -122,12 +128,19 @@ function App() {
             onReset={handleResetConfig}
           />
         );
+
+      case 'troca-equipamento':
+        return (
+          <TrocaEquipamento
+            key={`troca-${resetKey}`}
+            user={user} 
+            onReset={handleResetTroca}
+          />
+        );
       
       // Para outros módulos (em desenvolvimento)
       case 'instalacao-nova':
-      case 'visita-tecnica':
-      case 'transferencia-equipamento':
-      case 'manutencao':
+      case 'vistoria-tecnica':
       default:
         return (
           <div className="w-full h-full flex items-center justify-center p-8">
