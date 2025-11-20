@@ -13,6 +13,7 @@ import Lentidao from './components/agendamentos/lentidao/Lentidao';
 import QuedaConexao from './components/agendamentos/quedas-conexao/QuedaConexao';
 import ConfiRoteador from './components/agendamentos/configuracao/ConfiRoteador';
 import TrocaEquipamento from './components/agendamentos/troca-equipamento/TrocaEquipamento';
+import Alarmada from './components/agendamentos/alarmada/Alarmada';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -60,6 +61,11 @@ function App() {
 
   // Função para resetar o formulário de troca de equipamento
   const handleResetTroca = () => {
+    setResetKey(prev => prev + 1);
+  };
+
+  // Função para resetar o formulário de alarmada
+  const handleResetAlarmada = () => {
     setResetKey(prev => prev + 1);
   };
 
@@ -138,6 +144,15 @@ function App() {
           />
         );
       
+      case 'alarmada':
+        return (
+          <Alarmada
+            key={`alarmada-${resetKey}`}
+            user={user} 
+            onReset={handleResetAlarmada}
+          />
+        );
+
       // Para outros módulos (em desenvolvimento)
       case 'instalacao-nova':
       case 'vistoria-tecnica':
