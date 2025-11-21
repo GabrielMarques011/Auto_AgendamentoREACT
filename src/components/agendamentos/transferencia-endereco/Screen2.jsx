@@ -307,7 +307,7 @@ export default function Screen2({ formData, setFormData, nextStep, prevStep }) {
               placeholder="Apartamento, bloco, etc. (opcional)" 
               value={formData.complemento || ""} 
               onChange={(e) => setFormData({ ...formData, complemento: e.target.value })} 
-              className="w-full text-gray-800D pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" 
+              className="w-full text-gray-800 pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white" 
             />
           </div>
         </div>

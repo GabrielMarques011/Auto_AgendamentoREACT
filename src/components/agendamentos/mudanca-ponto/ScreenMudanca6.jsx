@@ -67,7 +67,43 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
     const userId = storedUser.id_tecnico || "147";
 
     try {
-      // Payload específico para mudança de ponto
+      // 1. PRIMEIRO: Atualizar o contrato com o endereço atual (incluindo complemento)
+      const updateContratoPayload = {
+        contractId: formData.contractId,
+        id_contrato: formData.contractId,
+        clientId: formData.clientId,
+        
+        // Campos de endereço que serão atualizados no contrato
+        endereco: formData.endereco_atual,
+        numero: formData.numero_atual,
+        bairro: formData.bairro_atual,
+        cep: formData.cep_atual,
+        cidade: formData.cidade_atual,
+        complemento: formData.complemento_atual,
+        
+        // Campos adicionais que sua rota espera
+        motivo_cancelamento: " ",
+        melhor_horario_reserva: periodToReserveLetter[formData.period] || "Q",
+      };
+
+      console.log("Enviando /api/update_contrato payload:", updateContratoPayload);
+
+      const resUpdate = await fetch("http://10.0.30.251:5000/api/update_contrato", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateContratoPayload)
+      });
+
+      const jsonUpdate = await resUpdate.json().catch(() => ({ error: "Resposta inválida do servidor no update_contrato" }));
+
+      if (!resUpdate.ok) {
+        console.warn("Aviso: Falha ao atualizar contrato, mas continuando com mudança de ponto:", jsonUpdate);
+        // Não vamos lançar erro aqui para não bloquear o fluxo principal
+      } else {
+        console.log("Contrato atualizado com sucesso:", jsonUpdate);
+      }
+
+      // 2. SEGUNDO: Criar a mudança de ponto
       const mudancaPontoPayload = {
         id_responsavel_tecnico: userId,
         clientId: formData.clientId,
@@ -83,7 +119,7 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
         tipo_mudanca: formData.tipo_mudanca || "",
         ponto_atual: formData.ponto_atual || "",
         ponto_novo: formData.ponto_novo || "",
-        observacoes: formData.observacao || "", // AQUI: Vinculando a observação
+        observacoes: formData.observacao || "",
         // Dados do agendamento
         scheduledDate: formatScheduledDate(),
         period: formData.period || "",
@@ -91,12 +127,11 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
         telefone: formData.telefone_celular || "",
         valueType: formData.valueType || "renovacao",
         taxValue: formData.taxValue || "",
-        melhor_horario_reserva: formData.melhor_horario_reserva || periodToReserveLetter[formData.period] || "Q",
+        melhor_horario_reserva: periodToReserveLetter[formData.period] || "Q",
       };
 
       console.log("Enviando /api/mudanca-ponto payload:", mudancaPontoPayload);
 
-      // TODO: Substituir pela rota correta da API de mudança de ponto
       const resMudanca = await fetch("http://10.0.30.251:5000/api/mudanca", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,35 +147,6 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
 
       console.log("Mudança de ponto criada:", jsonMudanca);
 
-      // TODO: Atualizar contrato se necessário para mudança de ponto
-      const updatePayload = {
-        contractId: formData.contractId,
-        id_contrato: formData.contractId,
-        clientId: formData.clientId,
-        // Incluir campos específicos da mudança de ponto se necessário
-        tipo_mudanca: formData.tipo_mudanca || "",
-        ponto_novo: formData.ponto_novo || "",
-        observacoes: formData.observacao || "", // AQUI: Vinculando a observação
-        motivo_cancelamento: " ",
-        melhor_horario_reserva: mudancaPontoPayload.melhor_horario_reserva,
-      };
-
-      console.log("Enviando /api/update_contrato payload:", updatePayload);
-
-      const resUpdate = await fetch("http://10.0.30.251:5000/api/update_contrato", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatePayload)
-      });
-
-      const jsonUpdate = await resUpdate.json().catch(() => ({ error: "Resposta inválida do servidor no update_contrato" }));
-
-      if (!resUpdate.ok) {
-        throw new Error(jsonUpdate.error || JSON.stringify(jsonUpdate));
-      }
-
-      console.log("Contrato atualizado:", jsonUpdate);
-
       setSuccessData({
         protocolo: jsonMudanca.protocolo_os || jsonMudanca.id_ticket,
         endereco: `${formData.endereco_atual}, ${formData.numero_atual} - ${formData.bairro_atual}`,
@@ -148,7 +154,7 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
         dataPeriodo: `${formatDateForDisplay(formData.scheduledDate)} - ${formatPeriodForDisplay(formData.period)}`,
         tipo_mudanca: formData.tipo_mudanca || "Não especificado",
         ponto_novo: formData.ponto_novo || "Não especificado",
-        observacao: formData.observacao || "Nenhuma observação informada" // AQUI: Incluindo no successData
+        observacao: formData.observacao || "Nenhuma observação informada"
       });
 
     } catch (err) {
@@ -328,7 +334,7 @@ export default function ScreenMudanca6({ formData, prevStep, onReset }) {
     );
   }
 
-  // Tela de revisão original
+  // Tela de revisão original (mantida igual)
   return (
     <div className="h-full flex flex-col">
       {/* Header da Tela */}

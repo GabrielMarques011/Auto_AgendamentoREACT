@@ -67,60 +67,23 @@ export default function ScreenTroca5({ formData, prevStep, onReset }) {
     const userId = storedUser.id_tecnico || "147";
 
     try {
-      // Payload específico para mudança de ponto
-      const mudancaPontoPayload = {
-        id_responsavel_tecnico: userId,
-        clientId: formData.clientId,
-        contractId: formData.contractId,
-        // Dados do endereço atual
-        cep_atual: formData.cep_atual || "",
-        endereco_atual: formData.endereco_atual || "",
-        bairro_atual: formData.bairro_atual || "",
-        numero_atual: formData.numero_atual || "",
-        complemento_atual: formData.complemento_atual || "",
-        cidade_atual: formData.cidade_atual || "",
-        // Dados da lentidão
-        tipo_mudanca: formData.tipo_mudanca || "",
-        ponto_atual: formData.ponto_atual || "",
-        ponto_novo: formData.ponto_novo || "",
-        observacoes: formData.observacao || "",
-        // Dados do agendamento
-        scheduledDate: formatScheduledDate(),
-        period: formData.period || "",
-        nome_cliente: formData.nome_cliente || "",
-        telefone: formData.telefone_celular || "",
-        melhor_horario_reserva: formData.melhor_horario_reserva || periodToReserveLetter[formData.period] || "Q",
-      };
-
-      console.log("Enviando /api/lentidao payload:", mudancaPontoPayload);
-
-      // TODO: Substituir pela rota correta da API
-      const resMudanca = await fetch("http://10.0.30.251:5000/api/troca", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mudancaPontoPayload)
-      });
-
-      const jsonMudanca = await resMudanca.json().catch(() => ({ error: "Resposta inválida do servidor" }));
-
-      if (!resMudanca.ok) {
-        const errMsg = jsonMudanca.error || JSON.stringify(jsonMudanca);
-        throw new Error(`Falha na lentidão: ${errMsg}`);
-      }
-
-      console.log("Lentidão criada:", jsonMudanca);
-
-      // TODO: Atualizar contrato se necessário para mudança de ponto
+      // 1. Primeiro, atualizar o contrato com o endereço atual (incluindo complemento)
       const updatePayload = {
         contractId: formData.contractId,
         id_contrato: formData.contractId,
         clientId: formData.clientId,
-        // Incluir campos específicos da mudança de ponto se necessário
-        tipo_mudanca: formData.tipo_mudanca || "",
-        ponto_novo: formData.ponto_novo || "",
-        observacoes: formData.observacao || "", // AQUI: Vinculando a observação
+        
+        // Campos de endereço que serão atualizados no contrato
+        endereco: formData.endereco_atual,
+        numero: formData.numero_atual,
+        bairro: formData.bairro_atual,
+        cep: formData.cep_atual,
+        cidade: formData.cidade_atual,
+        complemento: formData.complemento_atual,
+        
+        // Campos adicionais que sua rota espera
         motivo_cancelamento: " ",
-        melhor_horario_reserva: mudancaPontoPayload.melhor_horario_reserva,
+        melhor_horario_reserva: periodToReserveLetter[formData.period] || "Q",
       };
 
       console.log("Enviando /api/update_contrato payload:", updatePayload);
@@ -134,21 +97,64 @@ export default function ScreenTroca5({ formData, prevStep, onReset }) {
       const jsonUpdate = await resUpdate.json().catch(() => ({ error: "Resposta inválida do servidor no update_contrato" }));
 
       if (!resUpdate.ok) {
-        throw new Error(jsonUpdate.error || JSON.stringify(jsonUpdate));
+        console.warn("Aviso: Falha ao atualizar contrato, mas continuando com abertura de quedas:", jsonUpdate);
+        // Não vamos lançar erro aqui para não bloquear o fluxo principal
+      } else {
+        console.log("Contrato atualizado com sucesso:", jsonUpdate);
       }
 
-      console.log("Contrato atualizado:", jsonUpdate);
+      // 2. Segundo, criar a abertura de quedas de conexão
+      const quedasPayload = {
+        id_responsavel_tecnico: userId,
+        clientId: formData.clientId,
+        contractId: formData.contractId,
+        // Dados do endereço atual
+        cep_atual: formData.cep_atual || "",
+        endereco_atual: formData.endereco_atual || "",
+        bairro_atual: formData.bairro_atual || "",
+        numero_atual: formData.numero_atual || "",
+        complemento_atual: formData.complemento_atual || "",
+        cidade_atual: formData.cidade_atual || "",
+        // Dados da queda
+        tipo_mudanca: formData.tipo_mudanca || "",
+        ponto_atual: formData.ponto_atual || "",
+        ponto_novo: formData.ponto_novo || "",
+        observacoes: formData.observacao || "",
+        // Dados do agendamento
+        scheduledDate: formatScheduledDate(),
+        period: formData.period || "",
+        nome_cliente: formData.nome_cliente || "",
+        telefone: formData.telefone_celular || "",
+        melhor_horario_reserva: periodToReserveLetter[formData.period] || "Q",
+      };
+
+      console.log("Enviando /api/quedas payload:", quedasPayload);
+
+      const resQuedas = await fetch("http://10.0.30.251:5000/api/troca", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(quedasPayload)
+      });
+
+      const jsonQuedas = await resQuedas.json().catch(() => ({ error: "Resposta inválida do servidor" }));
+
+      if (!resQuedas.ok) {
+        const errMsg = jsonQuedas.error || JSON.stringify(jsonQuedas);
+        throw new Error(`Falha na abertura de quedas: ${errMsg}`);
+      }
+
+      console.log("Quedas de conexão criada:", jsonQuedas);
 
       setSuccessData({
-        protocolo: jsonMudanca.protocolo_os || jsonMudanca.id_ticket,
+        protocolo: jsonQuedas.protocolo_os || jsonQuedas.id_ticket,
         endereco: `${formData.endereco_atual}, ${formData.numero_atual} - ${formData.bairro_atual}`,
         complemento: formatComplemento(formData),
         dataPeriodo: `${formatDateForDisplay(formData.scheduledDate)} - ${formatPeriodForDisplay(formData.period)}`,
-        observacao: formData.observacao || "Nenhuma observação informada" // AQUI: Incluindo no successData
+        observacao: formData.observacao || "Nenhuma observação informada"
       });
 
     } catch (err) {
-      console.error("Erro ao finalizar mudança de ponto:", err);
+      console.error("Erro ao finalizar abertura de quedas:", err);
       alert("Erro ao finalizar: " + (err.message || String(err)));
     } finally {
       setLoading(false);

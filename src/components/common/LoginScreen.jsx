@@ -4,7 +4,7 @@ import { LogIn, User, Lock, AlertCircle, Eye, EyeOff, CalendarCheck, Wifi, Shiel
 
 const USERS = {
   "marques": { id_tecnico: "306", senha: "admin", nome: "Gabriel Marques" },
-  "diego.sousa": { id_tecnico: "377", senha: "sup@377", nome: "Diego Sousa" },
+  "lucas.silva": { id_tecnico: "404", senha: "sup@404", nome: "Lucas Silva" },
   "rodrigo.akira": { id_tecnico: "367", senha: "sup@367", nome: "Rodrigo Akira" },
   "pedro.santos": { id_tecnico: "359", senha: "sup@359", nome: "Pedro Santos" },
   "pedro.guedes": { id_tecnico: "390", senha: "sup@390", nome: "Pedro Guedes" },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, AlertCircle, Edit3, ArrowLeft, DollarSign, RefreshCw, CreditCard } from "lucide-react";
+import { FileText, AlertCircle, Edit3, ArrowLeft, DollarSign, RefreshCw, CreditCard, Users } from "lucide-react";
 
 export default function ScreenRoteador2({ formData, setFormData, nextStep, prevStep }) {
   // DEBUG: Verificar se as props estão chegando
@@ -14,6 +14,8 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
 
   const [tipoProblema, setTipoProblema] = useState(formData.tipoProblema || "");
   const [mostrarValores, setMostrarValores] = useState(false);
+  const [rompimentoMassivo, setRompimentoMassivo] = useState(formData.rompimentoMassivo || "");
+  const [quantosOff, setQuantosOff] = useState(formData.quantosOff || "");
 
   // Estado para os campos de validação
   const [validacoes, setValidacoes] = useState({
@@ -35,15 +37,24 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
     setFormData(prev => ({
       ...prev,
       tipoProblema,
+      rompimentoMassivo,
+      quantosOff,
       ...validacoes,
       ...valores
     }));
-  }, [tipoProblema, validacoes, valores, setFormData]);
+  }, [tipoProblema, rompimentoMassivo, quantosOff, validacoes, valores, setFormData]);
 
   // Mostrar/ocultar seção de valores quando for "mal uso"
   useEffect(() => {
     setMostrarValores(tipoProblema === "mal-uso");
   }, [tipoProblema]);
+
+  // Mostrar/ocultar campo quantosOff quando rompimentoMassivo for "sim"
+  useEffect(() => {
+    if (rompimentoMassivo !== "sim") {
+      setQuantosOff("");
+    }
+  }, [rompimentoMassivo]);
 
   // Função para construir o texto das validações
   const buildValidacoesText = (validacoes) => {
@@ -71,9 +82,17 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
     // Informações de valor (apenas para mal uso)
     if (tipoProblema === "mal-uso" && valores.valueType) {
       if (valores.valueType === "renovacao") {
-        parts.push("Valor: Renovação de Contrato (sem custo adicional)");
+        parts.push("- Valor: Renovação do Contrato Fidelidade");
       } else if (valores.valueType === "taxa" && valores.taxValue) {
-        parts.push(`Valor: Taxa de ${valores.taxValue}`);
+        parts.push(`- Valor: Taxa de ${valores.taxValue}`);
+      }
+    }
+
+    // Rompimento massivo
+    if (rompimentoMassivo) {
+      parts.push(`- Cliente faz parte de rompimento massivo: ${rompimentoMassivo === "sim" ? "Sim" : "Não"}`);
+      if (rompimentoMassivo === "sim" && quantosOff) {
+        parts.push(`Quantos OFF na primária: ${quantosOff}`);
       }
     }
 
@@ -117,6 +136,8 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
       ...prev, 
       observacao: validacoesText,
       tipoProblema,
+      rompimentoMassivo,
+      quantosOff,
       ...validacoes,
       ...valores
     }));
@@ -125,7 +146,7 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
   // Atualiza a observação quando os estados mudam
   useEffect(() => {
     updateObservacaoCompleta();
-  }, [tipoProblema, validacoes, valores]);
+  }, [tipoProblema, rompimentoMassivo, quantosOff, validacoes, valores]);
 
   const handleObservacaoChange = (e) => {
     const newValue = e.target.value;
@@ -305,7 +326,8 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
           )}
         </div>
 
-        {/* Seção de Valores (apenas para mal uso) - NOVO LAYOUT */}
+
+         {/* Seção de Valores (apenas para mal uso) */}
         {mostrarValores && (
           <div className="space-y-6">
             {/* Seleção do Tipo de Valor */}
@@ -409,6 +431,81 @@ export default function ScreenRoteador2({ formData, setFormData, nextStep, prevS
             )}
           </div>
         )}
+
+        {/* Seção de Rompimento Massivo */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <Users className="w-5 h-5 text-yellow-600" />
+            </div>
+            <div>
+              <label className="text-lg font-semibold text-gray-800 block">
+                Rompimento Massivo
+              </label>
+              <p className="text-sm text-gray-600">
+                Verifique se o cliente faz parte de algum rompimento massivo
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Seleção Sim/Não */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Cliente faz parte de algum rompimento massivo?
+              </label>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setRompimentoMassivo("sim")}
+                  className={`flex-1 px-6 py-4 rounded-xl font-semibold transition-all duration-200 border-2 ${
+                    rompimentoMassivo === "sim"
+                      ? 'bg-white border-blue-600 text-blue-600 shadow-sm'
+                      : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <span>Sim</span>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setRompimentoMassivo("nao")}
+                  className={`flex-1 px-6 py-4 rounded-xl font-semibold transition-all duration-200 border-2 ${
+                    rompimentoMassivo === "nao"
+                      ? 'bg-white border-blue-600 text-blue-600 shadow-sm'
+                      : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <span>Não</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Campo Quantos OFF - aparece apenas quando for Sim */}
+            {rompimentoMassivo === "sim" && (
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertCircle className="w-4 h-4 text-blue-600" />
+                  <label className="text-sm font-semibold text-blue-700">
+                    Quantos estão OFF na primária no mesmo horário que ele?
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  value={quantosOff}
+                  onChange={(e) => setQuantosOff(e.target.value)}
+                  placeholder="Ex: 15 clientes"
+                  className="w-full bg-white text-gray-800 px-4 py-3 border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200"
+                />
+                <small className="block mt-2 text-sm text-gray-500">
+                  Informe a quantidade aproximada de clientes afetados no mesmo horário
+                </small>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Área de Observações */}
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
